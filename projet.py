@@ -79,7 +79,11 @@ def load_finance_data():
 # PAGE 1 : INTRODUCTION
 # ────────────────────────────────────────────────
 if page == "Introduction":
-    st.image("imaubi.png", width=820)  # taille fixe de l'image
+    # Image d'introduction centrée avec largeur limitée
+    col_left, col_mid, col_right = st.columns([1, 2, 1])
+    with col_mid:
+        st.image("imaubi.png", use_container_width=True)
+
     
 
 # Ajout du texte de préintroduction
@@ -1829,6 +1833,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
