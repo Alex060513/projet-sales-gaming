@@ -76,9 +76,9 @@ def load_finance_data():
     raise RuntimeError(f"Impossible de lire {fname} : {last_err}")
 
 # ────────────────────────────────────────────────
-# PAGE 1 : INTRODUCTIONE
+# PAGE 1 : INTRODUCTION
 # ────────────────────────────────────────────────
-if page == "IntroductionE":
+if page == "Introduction":
     # Image d'introduction centrée avec largeur limitée
     col_left, col_mid, col_right = st.columns([2, 1, 1])
     with col_left:
@@ -89,7 +89,7 @@ if page == "IntroductionE":
     st.markdown(
     """
     <div style="text-align: justify; font-size: 18px; line-height: 1.6;">
-        Ce projet a pour objectif <strong>d’étudier le phénomène Ubisoft</strong>, 
+        Ce PROJET a pour objectif <strong>d’étudier le phénomène Ubisoft</strong>, 
         d’analyser son évolution, et d’explorer les raisons qui pourraient expliquer 
         <strong>sa potentielle chute dans les prochaines années</strong>. 
         Nous tenterons de comprendre comment une entreprise autrefois au sommet de 
@@ -1839,6 +1839,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
