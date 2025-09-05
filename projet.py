@@ -76,7 +76,7 @@ def load_finance_data():
     raise RuntimeError(f"Impossible de lire {fname} : {last_err}")
 
 # ────────────────────────────────────────────────
-# PAGE 1 : INTRODUCTION
+# PAGE 1 : INTRODUCTIONE
 # ────────────────────────────────────────────────
 if page == "Introduction":
     # Image d'introduction centrée avec largeur limitée
