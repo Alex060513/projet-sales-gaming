@@ -143,9 +143,13 @@ elif page == "Analyse financière comparative":
         st.stop()
 
    
-            # ── PARTIE 1 : Historique Ubisoft (texte à gauche + image à droite)
+            # ── PARTIE 1 : Historique Ubisoft (titre hors colonnes, texte à gauche / image à droite)
+
+    # Titre global (hors colonnes)
+    st.markdown("## 1. Analyse financière comparative")
+    st.markdown("### Une trajectoire spectaculaire puis un effondrement brutal…")
     
-    # 1) Fonction utilitaire (à placer AVANT l'appel)
+    # Fonction utilitaire (si pas déjà définie plus haut)
     @st.cache_data(show_spinner=False)
     def _find_ubisoft_chart() -> str | None:
         base = Path(__file__).parent if "__file__" in globals() else Path.cwd()
@@ -167,28 +171,21 @@ elif page == "Analyse financière comparative":
                 for p in folder.glob(pat):
                     return str(p)
         return None
-    # Titre global hors colonnes
-    st.markdown("""
-    ## 1. Analyse financière comparative  
-    ### Une trajectoire spectaculaire puis un effondrement brutal…
-    """)
-        
-    # 2) Mise en page : texte à gauche / image à droite
-    col1, col2 = st.columns([2, 1])  # ajuste le ratio si besoin (ex. [3,1])
+    
+    # Contenu en colonnes (paragraphe vs image)
+    col1, col2 = st.columns([2, 1])
     
     with col1:
-       
-    
-        L’action **Ubisoft** a connu une évolution remarquable depuis son introduction en Bourse le **1er juillet 1996**. Dès le premier jour de cotation, le titre est multiplié par **252**, porté par l’engouement pour l’industrie vidéoludique et une forte levée de fonds.  
+        paragraphe = '''
+    L’action **Ubisoft** a connu une évolution remarquable depuis son introduction en Bourse le **1er juillet 1996**. Dès le premier jour de cotation, le titre est multiplié par **252**, porté par l’engouement pour l’industrie vidéoludique et une forte levée de fonds.  
     Cette dynamique s’est poursuivie pendant plus d’une décennie, atteignant un **pic historique de plus de 100 € en juillet 2018**. Cette valorisation exceptionnelle reflète alors la solidité des franchises d’Ubisoft, telles que *Assassin’s Creed*, *Far Cry*, *Rainbow Six Siege* et *The Division*, ainsi que la stratégie de l’éditeur axée sur les **jeux à monde ouvert** et à fort contenu **solo/multijoueur**.  
     Entre **2014 et 2018**, les résultats financiers sont en nette progression, avec un chiffre d’affaires passant de **1,4** à **2,2 milliards de dollars** et une amélioration significative des marges. À cette période, **Tencent** entre au capital, consolidant l’image d’Ubisoft comme acteur stratégique à l’international.  
     Pourtant, dès **2019**, les résultats commencent à décevoir : plusieurs jeux ne répondent pas aux attentes, les retards s’accumulent, et la rentabilité s’effrite. Le titre entame alors une **chute prolongée** : en **cinq ans**, l’action perd plus de **80 % de sa valeur**. Depuis 2018, cela représente une **perte de capitalisation boursière d’environ 9 milliards d’euros**.
-    """)
+    '''
+        st.markdown(paragraphe)
     
     with col2:
-        # Décalage vertical pour aligner le haut de l'image avec le début du paragraphe
-        st.markdown("<br><br>", unsafe_allow_html=True)
-    
+        # pas de sous-titre; l’image s’aligne maintenant sur le début du paragraphe
         img_path = _find_ubisoft_chart()
         if img_path:
             st.image(
@@ -198,9 +195,9 @@ elif page == "Analyse financière comparative":
             )
         else:
             st.error(
-                "Image introuvable. Place le fichier **ubisoft_google_finance.png** "
-                "ou **Capture d'écran 2025-08-25 141139.png** à la racine du projet "
-                "ou dans **./assets/**, **./images/** ou **./static/**."
+                "Image introuvable. Place le fichier ubisoft_google_finance.png "
+                "ou Capture d'écran 2025-08-25 141139.png à la racine du projet "
+                "ou dans ./assets/, ./images/ ou ./static/."
             )
     
     st.divider()
@@ -1841,6 +1838,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
