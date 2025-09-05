@@ -78,7 +78,7 @@ def load_finance_data():
 # ────────────────────────────────────────────────
 # PAGE 1 : INTRODUCTIONE
 # ────────────────────────────────────────────────
-if page == "Introduction":
+if page == "IntroductionE":
     # Image d'introduction centrée avec largeur limitée
     col_left, col_mid, col_right = st.columns([2, 1, 1])
     with col_left:
@@ -1839,6 +1839,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
