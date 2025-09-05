@@ -143,33 +143,9 @@ elif page == "Analyse financière comparative":
         st.stop()
 
    
-    # ── PARTIE 1 : Historique Ubisoft (texte + image à droite)
-
-    # 1) Fonction utilitaire (doit être définie AVANT l'appel)
-    @st.cache_data(show_spinner=False)
-    def _find_ubisoft_chart() -> str | None:
-        base = Path(__file__).parent if "__file__" in globals() else Path.cwd()
-        candidates = [
-            base / "ubisoft_google_finance.png",
-            base / "assets" / "ubisoft_google_finance.png",
-            base / "images" / "ubisoft_google_finance.png",
-            base / "static" / "ubisoft_google_finance.png",
-            base / "Capture d'écran 2025-08-25 141139.png",
-            base / "assets" / "Capture d'écran 2025-08-25 141139.png",
-            base / "images" / "Capture d'écran 2025-08-25 141139.png",
-            base / "static" / "Capture d'écran 2025-08-25 141139.png",
-        ]
-        for p in candidates:
-            if p.exists():
-                return str(p)
-        for folder in [base, base / "assets", base / "images", base / "static"]:
-            for pat in ("ubisoft*finance*.*", "Ubisoft*Finance*.*", "Capture d'écran 2025-08-25 141139.*"):
-                for p in folder.glob(pat):
-                    return str(p)
-        return None
+        # ── PARTIE 1 : Historique Ubisoft (texte + image à droite)
     
-    # 2) Mise en page en colonnes (texte gauche / image droite)
-    col1, col2 = st.columns([2, 1])  # ajuste le ratio (ex. [3,1] si tu veux l'image plus petite)
+    col1, col2 = st.columns([2, 1])  # ratio texte / image
     
     with col1:
         st.markdown("""
@@ -183,7 +159,9 @@ elif page == "Analyse financière comparative":
         """)
     
     with col2:
-        st.subheader("Évolution historique du cours de l’action Ubisoft")
+        # Ajout d'un petit espace en haut pour aligner avec le texte
+        st.markdown("<br><br>", unsafe_allow_html=True)
+    
         img_path = _find_ubisoft_chart()
         if img_path:
             st.image(
@@ -199,6 +177,7 @@ elif page == "Analyse financière comparative":
             )
     
     st.divider()
+
 
 
 
@@ -1834,6 +1813,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
