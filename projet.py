@@ -89,7 +89,7 @@ if page == "Introduction":
     st.markdown(
     """
     <div style="text-align: justify; font-size: 18px; line-height: 1.6;">
-        Ce PROJET a pour objectif <strong>d’étudier le phénomène Ubisoft</strong>, 
+        Ce projet a pour objectif <strong>d’étudier le phénomène Ubisoft</strong>, 
         d’analyser son évolution, et d’explorer les raisons qui pourraient expliquer 
         <strong>sa potentielle chute dans les prochaines années</strong>. 
         Nous tenterons de comprendre comment une entreprise autrefois au sommet de 
@@ -1839,8 +1839,6 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
-
-
 
 
 
