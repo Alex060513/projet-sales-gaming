@@ -167,14 +167,17 @@ elif page == "Analyse financière comparative":
                 for p in folder.glob(pat):
                     return str(p)
         return None
-    
+    # Titre global hors colonnes
+    st.markdown("""
+    ## 1. Analyse financière comparative  
+    ### Une trajectoire spectaculaire puis un effondrement brutal…
+    """)
+        
     # 2) Mise en page : texte à gauche / image à droite
     col1, col2 = st.columns([2, 1])  # ajuste le ratio si besoin (ex. [3,1])
     
     with col1:
-        st.markdown("""
-        ## 1. Analyse financière comparative  
-        ### Une trajectoire spectaculaire puis un effondrement brutal…
+       
     
         L’action **Ubisoft** a connu une évolution remarquable depuis son introduction en Bourse le **1er juillet 1996**. Dès le premier jour de cotation, le titre est multiplié par **252**, porté par l’engouement pour l’industrie vidéoludique et une forte levée de fonds.  
         Cette dynamique s’est poursuivie pendant plus d’une décennie, atteignant un **pic historique de plus de 100 € en juillet 2018**. Cette valorisation exceptionnelle reflète alors la solidité des franchises d’Ubisoft, telles que *Assassin’s Creed*, *Far Cry*, *Rainbow Six Siege* et *The Division*, ainsi que la stratégie de l’éditeur axée sur les **jeux à monde ouvert** et à fort contenu **solo/multijoueur**.  
@@ -1838,6 +1841,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
