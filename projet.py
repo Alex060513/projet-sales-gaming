@@ -143,7 +143,10 @@ elif page == "Analyse financière comparative":
         st.stop()
 
    
-    # ── PARTIE 1 : Historique Ubisoft (texte + image locale)
+    # ── PARTIE 1 : Historique Ubisoft (texte + image à droite)
+col1, col2 = st.columns([2, 1])  # ratio 2/1 = texte plus large que l’image
+
+with col1:
     st.markdown("""
     ## 1. Analyse financière comparative  
     ### Une trajectoire spectaculaire puis un effondrement brutal…
@@ -154,35 +157,8 @@ elif page == "Analyse financière comparative":
     Pourtant, dès **2019**, les résultats commencent à décevoir : plusieurs jeux ne répondent pas aux attentes, les retards s’accumulent, et la rentabilité s’effrite. Le titre entame alors une **chute prolongée** : en **cinq ans**, l’action perd plus de **80 % de sa valeur**. Depuis 2018, cela représente une **perte de capitalisation boursière d’environ 9 milliards d’euros**.
     """)
 
-        # ── PARTIE 1 : Historique Ubisoft (chargement auto de l'image)
-    st.subheader(" Évolution historique du cours de l’action Ubisoft")
-
-    @st.cache_data(show_spinner=False)
-    def _find_ubisoft_chart() -> str | None:
-        base = Path(__file__).parent
-        # chemins les plus probables (mets l'image à la racine ou dans assets/images/static)
-        candidates = [
-            base / "ubisoft_google_finance.png",
-            base / "assets" / "ubisoft_google_finance.png",
-            base / "images" / "ubisoft_google_finance.png",
-            base / "static" / "ubisoft_google_finance.png",
-            base / "Capture d'écran 2025-08-25 141139.png",
-            base / "assets" / "Capture d'écran 2025-08-25 141139.png",
-            base / "images" / "Capture d'écran 2025-08-25 141139.png",
-            base / "static" / "Capture d'écran 2025-08-25 141139.png",
-        ]
-        for p in candidates:
-            if p.exists():
-                return str(p)
-        # recherche de secours par motif
-        for folder in [base, base / "assets", base / "images", base / "static"]:
-            for pat in ("ubisoft*finance*.*", "Ubisoft*Finance*.*", "Capture d'écran 2025-08-25 141139.*"):
-                for p in folder.glob(pat):
-                    return str(p)
-        return None
-
+with col2:
     img_path = _find_ubisoft_chart()
-
     if img_path:
         st.image(
             img_path,
@@ -196,7 +172,8 @@ elif page == "Analyse financière comparative":
             "ou dans **./assets/**, **./images/** ou **./static/**."
         )
 
-    st.divider()
+st.divider()
+
 
     # ── PARTIE 2 : Performance relative au secteur (texte + courbes comparatives)
     st.markdown("""
@@ -1830,6 +1807,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
