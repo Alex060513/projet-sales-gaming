@@ -83,20 +83,18 @@ if page == "Introduction":
     col_left, col_mid, col_right = st.columns([2, 1, 1])
     with col_left:
         st.image("imaubi.png", use_container_width=True)
+    with col_mid:  
 
-    
-
-# Ajout du texte de préintroduction
-    st.markdown(
-    """
-    <div style="text-align: justify; font-size: 18px; line-height: 1.6;">
-        Ce projet a pour objectif <strong>d’étudier le phénomène Ubisoft</strong>, 
-        d’analyser son évolution, et d’explorer les raisons qui pourraient expliquer 
-        <strong>sa potentielle chute dans les prochaines années</strong>. 
-        Nous tenterons de comprendre comment une entreprise autrefois au sommet de 
-        l’innovation se retrouve aujourd’hui face à de nouveaux défis dans un marché 
-        vidéoludique en constante mutation.
-    </div>
+        st.markdown(
+        """
+        <div style="text-align: justify; font-size: 18px; line-height: 1.6;">
+            Ce projet a pour objectif <strong>d’étudier le phénomène Ubisoft</strong>, 
+            d’analyser son évolution, et d’explorer les raisons qui pourraient expliquer 
+            <strong>sa potentielle chute dans les prochaines années</strong>. 
+            Nous tenterons de comprendre comment une entreprise autrefois au sommet de 
+            l’innovation se retrouve aujourd’hui face à de nouveaux défis dans un marché 
+            vidéoludique en constante mutation.
+        </div>
     """,
         unsafe_allow_html=True
 )
@@ -1833,6 +1831,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
