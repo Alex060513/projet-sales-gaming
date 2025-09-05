@@ -180,10 +180,10 @@ elif page == "Analyse financière comparative":
        
     
         L’action **Ubisoft** a connu une évolution remarquable depuis son introduction en Bourse le **1er juillet 1996**. Dès le premier jour de cotation, le titre est multiplié par **252**, porté par l’engouement pour l’industrie vidéoludique et une forte levée de fonds.  
-        Cette dynamique s’est poursuivie pendant plus d’une décennie, atteignant un **pic historique de plus de 100 € en juillet 2018**. Cette valorisation exceptionnelle reflète alors la solidité des franchises d’Ubisoft, telles que *Assassin’s Creed*, *Far Cry*, *Rainbow Six Siege* et *The Division*, ainsi que la stratégie de l’éditeur axée sur les **jeux à monde ouvert** et à fort contenu **solo/multijoueur**.  
-        Entre **2014 et 2018**, les résultats financiers sont en nette progression, avec un chiffre d’affaires passant de **1,4** à **2,2 milliards de dollars** et une amélioration significative des marges. À cette période, **Tencent** entre au capital, consolidant l’image d’Ubisoft comme acteur stratégique à l’international.  
-        Pourtant, dès **2019**, les résultats commencent à décevoir : plusieurs jeux ne répondent pas aux attentes, les retards s’accumulent, et la rentabilité s’effrite. Le titre entame alors une **chute prolongée** : en **cinq ans**, l’action perd plus de **80 % de sa valeur**. Depuis 2018, cela représente une **perte de capitalisation boursière d’environ 9 milliards d’euros**.
-        """)
+    Cette dynamique s’est poursuivie pendant plus d’une décennie, atteignant un **pic historique de plus de 100 € en juillet 2018**. Cette valorisation exceptionnelle reflète alors la solidité des franchises d’Ubisoft, telles que *Assassin’s Creed*, *Far Cry*, *Rainbow Six Siege* et *The Division*, ainsi que la stratégie de l’éditeur axée sur les **jeux à monde ouvert** et à fort contenu **solo/multijoueur**.  
+    Entre **2014 et 2018**, les résultats financiers sont en nette progression, avec un chiffre d’affaires passant de **1,4** à **2,2 milliards de dollars** et une amélioration significative des marges. À cette période, **Tencent** entre au capital, consolidant l’image d’Ubisoft comme acteur stratégique à l’international.  
+    Pourtant, dès **2019**, les résultats commencent à décevoir : plusieurs jeux ne répondent pas aux attentes, les retards s’accumulent, et la rentabilité s’effrite. Le titre entame alors une **chute prolongée** : en **cinq ans**, l’action perd plus de **80 % de sa valeur**. Depuis 2018, cela représente une **perte de capitalisation boursière d’environ 9 milliards d’euros**.
+    """)
     
     with col2:
         # Décalage vertical pour aligner le haut de l'image avec le début du paragraphe
@@ -1841,6 +1841,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
