@@ -1950,10 +1950,9 @@ Beaucoup de joueurs font explicitement référence à *Black Flag*, renforçant 
     import streamlit as st
 
     st.subheader(" Durée de Développement vs Note Metacritic — 💰 Taille des bulles = Budget de développement")
-
+    
     @st.cache_data
     def load_aaa():
-        # Charge ton fichier tel quel (mêmes noms de colonnes que dans ton code)
         tries = [
             dict(sep=",", encoding="utf-8"),
             dict(sep=";", encoding="utf-8"),
@@ -1967,81 +1966,104 @@ Beaucoup de joueurs font explicitement référence à *Black Flag*, renforçant 
         for path in ["jeux_AAA_metacritic_only.csv", "data/jeux_AAA_metacritic_only.csv"]:
             for opt in tries:
                 try:
-                    df = pd.read_csv(path, engine="python", **opt)
-                    return df
+                    return pd.read_csv(path, engine="python", **opt)
                 except Exception as e:
                     last_err = e
         raise RuntimeError(f"Impossible de lire le CSV : {last_err}")
-
-    # ➜ On suppose que ton CSV a bien les colonnes : title, publisher, budget_musd, development_years, metacritic_score
+    
+    # Colonnes attendues
     df_full = load_aaa()
     required = {"title", "publisher", "budget_musd", "development_years", "metacritic_score"}
     if not required.issubset(df_full.columns):
         st.error(f"Colonnes attendues manquantes. Il faut au minimum : {sorted(required)}")
         st.stop()
-
-    # — Graphique identique à ton code
-    plt.figure(figsize=(14, 8))
-    sns.set(style="whitegrid", font_scale=1.1)
-
-    # Palette dynamique basée sur le nombre d'éditeurs
-    n_publishers = df_full["publisher"].nunique()
-    palette = sns.color_palette("tab10", n_colors=n_publishers)
-
-    plot = sns.scatterplot(
-        data=df_full,
+    
+    # Nettoyage simple
+    df_plot = df_full.copy()
+    df_plot = df_plot.dropna(subset=["development_years", "metacritic_score", "budget_musd", "publisher", "title"])
+    
+    # Mise à l’échelle des bulles (Plotly: sizemode='area' + sizeref)
+    size_max = 52  # taille visuelle max
+    max_budget = max(1.0, df_plot["budget_musd"].max())
+    sizeref = 2.0 * max_budget / (size_max**2)  # formule Plotly officielle
+    
+    import plotly.express as px
+    
+    fig = px.scatter(
+        df_plot,
         x="development_years",
         y="metacritic_score",
-        hue="publisher",
         size="budget_musd",
-        sizes=(200, 2000),
-        alpha=0.9,
-        edgecolor="black",
-        linewidth=0.5,
-        palette=palette,
-        legend="brief"
+        color="publisher",
+        text="title",                          # nom au centre de la bulle
+        hover_name="title",
+        hover_data={
+            "publisher": True,
+            "budget_musd": ":.0f",
+            "development_years": ":.1f",
+            "metacritic_score": ":.0f",
+        },
+        labels={
+            "development_years": "Durée de développement (années)",
+            "metacritic_score": "Note Metacritic",
+            "publisher": "Éditeur",
+            "budget_musd": "Budget (M$)",
+        },
+        template="simple_white",
     )
-
-    # Titres des jeux au centre des bulles (comme ton code)
-    for _, row in df_full.iterrows():
-        plt.text(
-            row["development_years"],
-            row["metacritic_score"],
-            row["title"],
-            fontsize=10,
-            ha="center",
-            va="center",
-            color="black",
-            weight="bold",
-        )
-
-    # Mise en page (identique à l’esprit de ton snippet)
-    plt.title("🎮 Durée de Développement vs Note Metacritic\n💰 Taille des bulles = Budget de développement",
-              fontsize=16, weight="bold")
-    plt.xlabel("Durée de développement (années)", fontsize=12)
-    plt.ylabel("Note Metacritic", fontsize=12)
-    plt.grid(True, linestyle="--", alpha=0.6)
-
-    # Légendes sur la droite
-    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left",
-               title="Éditeur / Budget", borderaxespad=1)
-
-    # Petites marges pour éviter de couper les bulles/labels
-    plt.margins(x=0.08, y=0.06)
-
-    # Optionnel : forcer un peu de marge en X pour que tout soit bien “entier”
-    xmin, xmax = df_full["development_years"].min(), df_full["development_years"].max()
-    plt.xlim(xmin - 0.5, xmax + 1.0)
-
-    plt.tight_layout()
-
-    # ➜ Affichage Streamlit
-    st.pyplot(plt.gcf(), clear_figure=True)
+    
+    # Style des marqueurs & texte
+    fig.update_traces(
+        mode="markers+text",
+        textposition="middle center",
+        textfont=dict(size=10, color="black"),
+        marker=dict(
+            line=dict(width=0.6, color="black"),
+            opacity=0.9,
+            sizemode="area",
+            sizeref=sizeref,
+            sizemin=6
+        ),
+        hovertemplate="<b>%{hovertext}</b><br>" +
+                      "Éditeur: %{customdata[0]}<br>" +
+                      "Budget: %{customdata[1]:,.0f} M$<br>" +
+                      "Durée: %{customdata[2]:.1f} ans<br>" +
+                      "Metacritic: %{customdata[3]:.0f}<extra></extra>"
+    )
+    
+    # Axes & mise en page
+    xmin, xmax = float(df_plot["development_years"].min()), float(df_plot["development_years"].max())
+    yrmin, yrmax = float(df_plot["metacritic_score"].min()), float(df_plot["metacritic_score"].max())
+    
+    fig.update_xaxes(
+        range=[xmin - 0.5, xmax + 1.0],
+        showline=True, linecolor="black",
+        gridcolor="rgba(0,0,0,.12)"
+    )
+    fig.update_yaxes(
+        range=[max(0, yrmin - 3), min(100, yrmax + 3)],
+        showline=True, linecolor="black",
+        gridcolor="rgba(0,0,0,.12)"
+    )
+    
+    fig.update_layout(
+        title=dict(
+            text="🎮 Durée de Développement vs Note Metacritic — <b>💰 Taille des bulles = Budget</b>",
+            x=0.02, xanchor="left"
+        ),
+        height=560,
+        margin=dict(l=60, r=20, t=70, b=50),
+        legend_title_text="Éditeur / Budget",
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
     st.markdown("""
-Ce graphique met en lumière un décalage profond entre effort, coût et valeur livrée. Il constitue un cas d’école d’échec produit, qui interroge autant la stratégie d’Ubisoft que sa capacité à piloter efficacement des projets à long terme.
-""")
-
+    Ce graphique met en lumière un décalage profond entre effort, coût et valeur livrée. Il constitue un cas d’école d’échec produit,
+    qui interroge autant la stratégie d’Ubisoft que sa capacité à piloter efficacement des projets à long terme.
+    """)
     st.divider()
+
 
 # ────────────────────────────────────────────────
 # PAGE 5 : CONCLUSION — texte identique au screenshot
@@ -2112,6 +2134,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
