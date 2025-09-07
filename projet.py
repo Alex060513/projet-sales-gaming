@@ -1845,7 +1845,7 @@ Beaucoup de joueurs font explicitement référence à *Black Flag*, renforçant 
         # --- Génération du WordCloud (style projet)
         wordcloud = WordCloud(
             width=1200,
-            height=700,
+            height=500,
             background_color="white",
             stopwords=custom_stopwords,
             color_func=color_function
@@ -2089,6 +2089,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
