@@ -494,18 +494,17 @@ elif page == "Analyse financière comparative":
     
     # ────────────────────────────────────────────────
     # --- Onglets
-    # --- Onglets
     st.subheader("Évolution du chiffre d’affaires, du résultat net et de la masse salariale sur la période 2018–2024")
     tab_ca, tab_profit, tab_payroll = st.tabs(
         ["📈 Chiffre d’affaires", "💶 Résultat net", "👥 Masse salariale"]
     )
     
     # ----- Common plot style helpers -----
-    FIG_W, FIG_H = 8, 4.6
-    TITLE_FS = 13
-    LABEL_FS = 11
-    TICK_FS  = 9
-    LEGEND_FS = 9
+    FIG_W, FIG_H = 7.5, 3.8
+    TITLE_FS = 11
+    LABEL_FS = 9
+    TICK_FS  = 8
+    LEGEND_FS = 7
     
     def _legend_below(ax, n_items: int):
         """Place the legend below the axes with a sensible number of columns."""
@@ -1980,6 +1979,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
