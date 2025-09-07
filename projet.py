@@ -1375,27 +1375,53 @@ elif page == "Perception et critique : la rupture avec les joueurs":
     st.dataframe(stats, use_container_width=True)
 
     # ───────── Graphiques : Presse vs Joueurs
-    st.subheader(" Comparaison des distributions")
+    st.subheader("Comparaison des distributions")
+    
     x_min, x_max = 0, 10
-    sns.set_style("whitegrid")
-
-    fig, axs = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
-
-    # Presse
-    sns.histplot(df_notes["Press_Score"], bins=20, kde=True, color="#4CAF50", ax=axs[0])
-    axs[0].set_title("Distribution des notes de la Presse (sur 10)", fontsize=12)
-    axs[0].set_ylabel("Nombre de jeux")
-    axs[0].set_xlim(x_min, x_max)
-
-    # Joueurs
-    sns.histplot(df_notes["Users_Score"], bins=20, kde=True, color="#87CEEB", ax=axs[1])
-    axs[1].set_title("Distribution des notes utilisateurs (sur 10)", fontsize=12)
-    axs[1].set_xlabel("Notes")
-    axs[1].set_ylabel("Nombre de jeux")
-    axs[1].set_xlim(x_min, x_max)
-
-    plt.tight_layout()
-    st.pyplot(fig)
+    
+    # Distribution Presse
+    fig_press = px.histogram(
+        df_notes,
+        x="Press_Score",
+        nbins=20,
+        opacity=0.75,
+        color_discrete_sequence=["#4CAF50"],
+        title="Distribution des notes de la Presse (sur 10)"
+    )
+    fig_press.update_traces(marker_line_width=0.5, marker_line_color="white")
+    fig_press.update_layout(
+        height=300,
+        margin=dict(l=40, r=20, t=60, b=40),
+        bargap=0.05,
+        xaxis=dict(range=[x_min, x_max]),
+        yaxis_title="Nombre de jeux",
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+    )
+    st.plotly_chart(fig_press, use_container_width=True)
+    
+    # Distribution Utilisateurs
+    fig_users = px.histogram(
+        df_notes,
+        x="Users_Score",
+        nbins=20,
+        opacity=0.75,
+        color_discrete_sequence=["#87CEEB"],
+        title="Distribution des notes utilisateurs (sur 10)"
+    )
+    fig_users.update_traces(marker_line_width=0.5, marker_line_color="white")
+    fig_users.update_layout(
+        height=300,
+        margin=dict(l=40, r=20, t=60, b=40),
+        bargap=0.05,
+        xaxis=dict(range=[x_min, x_max]),
+        xaxis_title="Notes",
+        yaxis_title="Nombre de jeux",
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+    )
+    st.plotly_chart(fig_users, use_container_width=True)
+    
 
     # ───────── Analyse rapide
     st.subheader(" Analyse")
@@ -2022,6 +2048,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
