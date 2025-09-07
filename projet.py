@@ -255,23 +255,27 @@ elif page == "Analyse financière comparative":
     st.divider()
 
     # ── PARTIE 3 : CA cumulé par éditeur (lecture robuste depuis df_finance)
-    # 1) Option : mettre en avant Ubisoft
+    # Sécurité : s'assurer que 'out' existe et n'est pas vide
+if "out" not in locals() or out is None or out.empty:
+    st.warning("Aucune donnée à afficher pour le CA cumulé par éditeur.")
+else:
     out_plot = out.copy()
+
+    # Mettre en avant Ubisoft
     out_plot["Groupe"] = np.where(
         out_plot["Éditeur"].str.contains("ubisoft", case=False, na=False),
         "Ubisoft", "Autres"
     )
-    
-    # 2) Format des étiquettes (espaces fines, suffixe M€)
-    def fmt_fr(x):
+
+    # Étiquettes jolies en M€
+    def _fmt_me(x):
         try:
             return f"{int(round(float(x))):,}".replace(",", " ") + " M€"
         except:
             return str(x)
-    
-    out_plot["label"] = out_plot["CA cumulé (M€)"].map(fmt_fr)
-    
-    # 3) Bar chart interactif
+
+    out_plot["label"] = out_plot["CA cumulé (M€)"].map(_fmt_me)
+
     fig = px.bar(
         out_plot,
         x="Éditeur",
@@ -281,16 +285,16 @@ elif page == "Analyse financière comparative":
         text="label",
         title="Chiffre d'affaires cumulé par éditeur de 2018 à 2024",
     )
-    
-    # 4) Style compact + lisible pour Streamlit
+
+    # Style compact + lisible
     fig.update_traces(
         textposition="outside",
         cliponaxis=False,
         hovertemplate="<b>%{x}</b><br>CA cumulé : %{y:,.0f} M€<extra></extra>"
+                      .replace(",", " ")  # séparateur FR dans le hover
     )
-    
     fig.update_layout(
-        height=360,                                # plus petit
+        height=360,  # plus petit
         margin=dict(l=40, r=20, t=60, b=40),
         title_x=0.5,
         legend_title_text="",
@@ -298,20 +302,18 @@ elif page == "Analyse financière comparative":
         paper_bgcolor="white",
         bargap=0.25,
     )
-    
     fig.update_xaxes(
         title="Éditeurs",
         tickangle=-25,
         showline=True, linecolor="#000", linewidth=1,
-        gridcolor="rgba(0,0,0,0.15)", showgrid=False
+        showgrid=False
     )
     fig.update_yaxes(
         title="Chiffre d'affaires cumulé (M€)",
         showline=True, linecolor="#000", linewidth=1,
-        gridcolor="rgba(0,0,0,0.15)",
+        gridcolor="rgba(0,0,0,0.15)"
     )
-    
-    # 5) Affichage responsive
+
     st.plotly_chart(fig, use_container_width=True)
     # ────────────────────────────────────────────────
     # Graphiques comparatifs CA, Résultat net, Masse salariale (interactifs)
@@ -1841,6 +1843,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
