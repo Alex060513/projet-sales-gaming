@@ -494,6 +494,7 @@ elif page == "Analyse financière comparative":
     
     # ────────────────────────────────────────────────
     # --- Onglets
+    st.subheader("Évolution du chiffre d’affaires, du résultat net et de la masse salariale sur la période 2018–2024")
     tab_ca, tab_profit, tab_payroll = st.tabs(
         ["📈 Chiffre d’affaires", "💶 Résultat net", "👥 Masse salariale"]
     )
@@ -1957,6 +1958,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
