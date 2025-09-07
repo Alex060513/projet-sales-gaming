@@ -254,67 +254,128 @@ elif page == "Analyse financière comparative":
     st.plotly_chart(fig, use_container_width=True)  # <- clé pour éviter un graphe trop large
     st.divider()
 
-    # ── PARTIE 3 : CA cumulé par éditeur (lecture robuste depuis df_finance)
-    # Sécurité : s'assurer que 'out' existe et n'est pas vide
-if "out" not in locals() or out is None or out.empty:
-    st.warning("Aucune donnée à afficher pour le CA cumulé par éditeur.")
-else:
-    out_plot = out.copy()
+        # ── PARTIE 3 : CA cumulé par éditeur (lecture robuste depuis df_finance) — Plotly compact
+    st.markdown("""
+    **Observation complémentaire.**  
+    Sur la période étudiée, le **chiffre d’affaires cumulé** d’Ubisoft est **le plus faible parmi les éditeurs majeurs du secteur**.
+    """)
+    st.subheader(" Chiffre d’affaires cumulé par éditeur (2018–2024) ")
 
-    # Mettre en avant Ubisoft
-    out_plot["Groupe"] = np.where(
-        out_plot["Éditeur"].str.contains("ubisoft", case=False, na=False),
-        "Ubisoft", "Autres"
-    )
+    # -- Normalisation de colonnes
+    raw = df_finance.copy()
+    norm_map = {c: norm_col(c) for c in raw.columns}
+    df = raw.rename(columns=norm_map)
 
-    # Étiquettes jolies en M€
-    def _fmt_me(x):
-        try:
-            return f"{int(round(float(x))):,}".replace(",", " ") + " M€"
-        except:
-            return str(x)
+    cumu_alias = [
+        'ca cumule (m€)','ca cumule','chiffre daffaires cumule (m€)',
+        'chiffre daffaires cumule','revenue cumule (m€)','revenu cumule (m€)','revenue total (m€)'
+    ]
+    # années FY2018..FY2024 ou 2018..2024
+    year_cols = [c for c in df.columns if re.fullmatch(r'(?:fy)?(20(1[8-9]|2[0-4]))', c)]
+    if not year_cols:
+        year_cols = [c for c in df.columns if re.search(r'20(1[8-9]|2[0-4])', c)]
 
-    out_plot["label"] = out_plot["CA cumulé (M€)"].map(_fmt_me)
+    editor_alias = ['editeur','éditeur','publisher','societe','entreprise','company','studio','nom','compagnie']
+    editor_col = next((c for c in df.columns if c in editor_alias), None)
+    if editor_col is None:
+        for c in df.columns:
+            if df[c].dtype == object:
+                editor_col = c; break
+    if editor_col is None:
+        st.error("Colonne 'Éditeur' introuvable dans Finance_Finale.csv"); 
+        st.stop()
 
-    fig = px.bar(
-        out_plot,
-        x="Éditeur",
-        y="CA cumulé (M€)",
-        color="Groupe",
-        color_discrete_map={"Ubisoft": "#e53935", "Autres": "#4e79a7"},
-        text="label",
-        title="Chiffre d'affaires cumulé par éditeur de 2018 à 2024",
-    )
+    cumu_col = next((c for c in df.columns if c in cumu_alias), None)
 
-    # Style compact + lisible
-    fig.update_traces(
-        textposition="outside",
-        cliponaxis=False,
-        hovertemplate="<b>%{x}</b><br>CA cumulé : %{y:,.0f} M€<extra></extra>"
-                      .replace(",", " ")  # séparateur FR dans le hover
-    )
-    fig.update_layout(
-        height=360,  # plus petit
-        margin=dict(l=40, r=20, t=60, b=40),
-        title_x=0.5,
-        legend_title_text="",
-        plot_bgcolor="white",
-        paper_bgcolor="white",
-        bargap=0.25,
-    )
-    fig.update_xaxes(
-        title="Éditeurs",
-        tickangle=-25,
-        showline=True, linecolor="#000", linewidth=1,
-        showgrid=False
-    )
-    fig.update_yaxes(
-        title="Chiffre d'affaires cumulé (M€)",
-        showline=True, linecolor="#000", linewidth=1,
-        gridcolor="rgba(0,0,0,0.15)"
-    )
+    # -- Construction de 'out' = DataFrame [Éditeur, CA cumulé (M€)]
+    if cumu_col:
+        out = pd.DataFrame({
+            "Éditeur": df[editor_col],
+            "CA cumulé (M€)": df[cumu_col].apply(clean_numeric)
+        })
+    elif year_cols:
+        tmp = df[[editor_col] + year_cols].copy()
+        for c in year_cols:
+            tmp[c] = tmp[c].apply(clean_numeric)
+        total = tmp[year_cols].sum(axis=1)
+        # si données en euros → bascule en M€
+        if pd.notna(total.max()) and total.max() > 1_000_000:
+            total = total / 1_000_000.0
+        out = pd.DataFrame({"Éditeur": tmp[editor_col], "CA cumulé (M€)": total})
+    else:
+        year_line_alias = ['annee','year','date']
+        annee_col = next((c for c in df.columns if c in year_line_alias or "annee" in c or "year" in c or "date" in c), None)
+        ca_candidates = [c for c in df.columns if any(k in c for k in ['chiffre','revenue','revenu','sales','ca '])]
+        ca_col = ca_candidates[0] if ca_candidates else None
+        if not (annee_col and ca_col):
+            st.error("Colonnes nécessaires non trouvées (Année + Chiffre d'affaires)."); 
+            st.stop()
+        work = df[[editor_col, annee_col, ca_col]].copy()
+        work['__year__'] = pd.to_datetime(work[annee_col], errors='coerce').dt.year
+        work['__ca__'] = work[ca_col].apply(clean_numeric)
+        mask = work['__year__'].between(2018, 2024, inclusive='both')
+        out = (work[mask]
+               .groupby(editor_col, as_index=False)['__ca__'].sum()
+               .rename(columns={editor_col:"Éditeur", '__ca__':"CA cumulé (M€)"}))
+        if pd.notna(out["CA cumulé (M€)"].max()) and out["CA cumulé (M€)"].max() > 1_000_000:
+            out["CA cumulé (M€)"] = out["CA cumulé (M€)"] / 1_000_000.0
 
-    st.plotly_chart(fig, use_container_width=True)
+    out = out.dropna(subset=["Éditeur"]).copy()
+    out["CA cumulé (M€)"] = pd.to_numeric(out["CA cumulé (M€)"], errors='coerce').fillna(0)
+    out = out.sort_values("CA cumulé (M€)", ascending=False)
+
+    if out.empty:
+        st.warning("Aucune donnée à afficher pour le CA cumulé par éditeur.")
+    else:
+        # Mettre en avant Ubisoft
+        out_plot = out.copy()
+        out_plot["Groupe"] = np.where(
+            out_plot["Éditeur"].str.contains("ubisoft", case=False, na=False),
+            "Ubisoft", "Autres"
+        )
+        # étiquette jolie
+        def _fmt_me(x):
+            try: return f"{int(round(float(x))):,}".replace(",", " ") + " M€"
+            except: return str(x)
+        out_plot["label"] = out_plot["CA cumulé (M€)"].map(_fmt_me)
+
+        fig = px.bar(
+            out_plot,
+            x="Éditeur", y="CA cumulé (M€)",
+            color="Groupe",
+            color_discrete_map={"Ubisoft": "#e53935", "Autres": "#4e79a7"},
+            text="label",
+            title="Chiffre d'affaires cumulé par éditeur de 2018 à 2024",
+        )
+        fig.update_traces(
+            textposition="outside",
+            cliponaxis=False,
+            hovertemplate="<b>%{x}</b><br>CA cumulé : %{y:,.0f} M€<extra></extra>".replace(",", " ")
+        )
+        fig.update_layout(
+            height=360,  # plus petit
+            margin=dict(l=40, r=20, t=60, b=40),
+            title_x=0.5,
+            legend_title_text="",
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+            bargap=0.25,
+        )
+        fig.update_xaxes(
+            title="Éditeurs",
+            tickangle=-25,
+            showline=True, linecolor="#000", linewidth=1,
+            showgrid=False
+        )
+        fig.update_yaxes(
+            title="Chiffre d'affaires cumulé (M€)",
+            showline=True, linecolor="#000", linewidth=1,
+            gridcolor="rgba(0,0,0,0.15)"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.divider()
+
     # ────────────────────────────────────────────────
     # Graphiques comparatifs CA, Résultat net, Masse salariale (interactifs)
     # ────────────────────────────────────────────────
@@ -1843,6 +1904,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
