@@ -700,7 +700,7 @@ elif page == "Analyse financière comparative":
 # ─────────────────────────────────────────────────────────────
     # Bulles (Plotly) — 2 onglets : Profit vs CA  |  Masse salariale vs Effectif
     # ─────────────────────────────────────────────────────────────
-     st.subheader("Pour aller un peu plus loin...")
+    st.subheader("Pour aller un peu plus loin...")
     st.divider()
     tabs = st.tabs(["💶 Résultat net vs Chiffre d’affaires", "👥 Masse salariale vs Effectif total"])
     
@@ -2004,6 +2004,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
