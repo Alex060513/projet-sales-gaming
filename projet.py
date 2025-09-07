@@ -241,6 +241,7 @@ elif page == "Analyse financière comparative":
         "Ubisoft": "red",   # rouge
         "ESPO": "green",    # vert
         "HERO": "blue"      # bleu
+        }
     )
     
     # Style compact + lisible pour Streamlit
@@ -1908,6 +1909,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
