@@ -236,7 +236,11 @@ elif page == "Analyse financière comparative":
     # Graph interactif
     fig = px.line(
         df_long, x="Année", y="Valeur", color="Actif", markers=True,
-        title="Évolution du cours Ubisoft vs ESPO & HERO (5 dernières années)"
+        title="Évolution du cours Ubisoft vs ESPO & HERO (5 dernières années)",
+        color_discrete_map={
+        "Ubisoft": "red",   # rouge
+        "ESPO": "green",    # vert
+        "HERO": "blue"      # bleu
     )
     
     # Style compact + lisible pour Streamlit
@@ -1904,6 +1908,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
