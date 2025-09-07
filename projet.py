@@ -331,7 +331,7 @@ elif page == "Analyse financière comparative":
         out_plot = out.copy()
         out_plot["Groupe"] = np.where(
             out_plot["Éditeur"].str.contains("ubisoft", case=False, na=False),
-            "Ubisoft", "Autres"
+            "Ubisoft", "Autres Editeurs"
         )
         # étiquette jolie
         def _fmt_me(x):
@@ -1904,6 +1904,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
