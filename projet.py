@@ -343,7 +343,7 @@ elif page == "Analyse financière comparative":
             out_plot,
             x="Éditeur", y="CA cumulé (M€)",
             color="Groupe",
-            color_discrete_map={"Ubisoft": "#e53935", "Autres": "#4e79a7"},
+            color_discrete_map={"Ubisoft": "#e53935", "Autres Editeurs": "#4e79a7"},
             text="label",
             title="Chiffre d'affaires cumulé par éditeur de 2018 à 2024",
         )
@@ -1904,6 +1904,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
