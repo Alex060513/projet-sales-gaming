@@ -1581,121 +1581,121 @@ utilisateurs et le produit livré, alimenté par des éléments récurrents dans
 """)
 
     # ────────────────────────────────────────────────
-# 3) Top & Flop Ubisoft – Score moyen global (presse + utilisateurs) — version Plotly
-# ───────────────────────────────────────────────────────────────────────────────
-st.subheader(" Top & Flop Ubisoft – Score moyen global (presse + utilisateurs)")
-
-# Helpers de normalisation (si pas déjà définis plus haut)
-import re, unicodedata
-def _norm(s: str) -> str:
-    s = unicodedata.normalize("NFKD", str(s))
-    s = "".join(c for c in s if not unicodedata.combining(c))
-    return re.sub(r"[\s\-_\/]+", " ", s).strip().lower()
-
-def _extract_year_column(df: pd.DataFrame) -> pd.Series | None:
-    # 1) colonnes de date
-    for c in df.columns:
-        n = _norm(c)
-        if any(k in n for k in ["release", "premiere", "publication", "date", "year", "annee", "année"]):
-            y = pd.to_datetime(df[c], errors="coerce").dt.year
-            if y.notna().sum() > 0:
-                return y
-    # 2) colonnes numériques déjà en années
-    for c in df.columns:
-        if pd.api.types.is_numeric_dtype(df[c]):
-            y = pd.to_numeric(df[c], errors="coerce")
-            if ((y >= 1990) & (y <= 2035)).sum() > 0:
-                return y
-    return None
-
-# Point de départ : df_notes (scores Presse et Users déjà ramenés /10)
-df_plot = df_notes.copy()
-
-# Assure la présence des colonnes utiles
-if "Year" not in df_plot.columns:
-    y = _extract_year_column(raw)
-    if y is not None:
-        df_plot["Year"] = y
+    # 3) Top & Flop Ubisoft – Score moyen global (presse + utilisateurs) — version Plotly
+    # ───────────────────────────────────────────────────────────────────────────────
+    st.subheader(" Top & Flop Ubisoft – Score moyen global (presse + utilisateurs)")
+    
+    # Helpers de normalisation (si pas déjà définis plus haut)
+    import re, unicodedata
+    def _norm(s: str) -> str:
+        s = unicodedata.normalize("NFKD", str(s))
+        s = "".join(c for c in s if not unicodedata.combining(c))
+        return re.sub(r"[\s\-_\/]+", " ", s).strip().lower()
+    
+    def _extract_year_column(df: pd.DataFrame) -> pd.Series | None:
+        # 1) colonnes de date
+        for c in df.columns:
+            n = _norm(c)
+            if any(k in n for k in ["release", "premiere", "publication", "date", "year", "annee", "année"]):
+                y = pd.to_datetime(df[c], errors="coerce").dt.year
+                if y.notna().sum() > 0:
+                    return y
+        # 2) colonnes numériques déjà en années
+        for c in df.columns:
+            if pd.api.types.is_numeric_dtype(df[c]):
+                y = pd.to_numeric(df[c], errors="coerce")
+                if ((y >= 1990) & (y <= 2035)).sum() > 0:
+                    return y
+        return None
+    
+    # Point de départ : df_notes (scores Presse et Users déjà ramenés /10)
+    df_plot = df_notes.copy()
+    
+    # Assure la présence des colonnes utiles
+    if "Year" not in df_plot.columns:
+        y = _extract_year_column(raw)
+        if y is not None:
+            df_plot["Year"] = y
+        else:
+            st.error("Impossible d’identifier la colonne Année. Ajoute une colonne 'Year' ou une date de sortie dans le CSV.")
+            st.stop()
+    
+    if "Name" not in df_plot.columns:
+        name_col = next((c for c in raw.columns if _norm(c) in {"name","titre","title","game","jeu"} 
+                         or any(k in _norm(c) for k in ["name","title","game","jeu","titre"])), None)
+        df_plot["Name"] = raw[name_col] if name_col else [f"Jeu {i}" for i in range(len(df_plot))]
+    
+    if "Platform" not in df_plot.columns:
+        plat_col = next((c for c in raw.columns if any(k in _norm(c) for k in ["platform","console","system"])), None)
+        df_plot["Platform"] = raw[plat_col] if plat_col else "N/A"
+    
+    if "Score_Avg" not in df_plot.columns:
+        df_plot["Score_Avg"] = df_plot[["Press_Score","Users_Score"]].mean(axis=1)
+    
+    # Filtre période récente (modifiable)
+    df_notes_recent = df_plot[df_plot["Year"] >= 2015].copy()
+    
+    # Top 10 (meilleurs) / Flop 10 (pires) par moyenne
+    top_avg = (df_notes_recent.sort_values(by="Score_Avg", ascending=False)
+               .drop_duplicates(subset=["Name","Platform"])
+               .head(10))
+    flop_avg = (df_notes_recent.sort_values(by="Score_Avg", ascending=True)
+                .drop_duplicates(subset=["Name","Platform"])
+                .head(10))
+    
+    topflop_avg = pd.concat([top_avg.assign(cat="Top"), flop_avg.assign(cat="Flop")], ignore_index=True)
+    
+    if topflop_avg.empty:
+        st.warning("Aucune donnée après filtrage (Year ≥ 2015). Vérifie les colonnes Year/Name/Platform.")
     else:
-        st.error("Impossible d’identifier la colonne Année. Ajoute une colonne 'Year' ou une date de sortie dans le CSV.")
-        st.stop()
-
-if "Name" not in df_plot.columns:
-    name_col = next((c for c in raw.columns if _norm(c) in {"name","titre","title","game","jeu"} 
-                     or any(k in _norm(c) for k in ["name","title","game","jeu","titre"])), None)
-    df_plot["Name"] = raw[name_col] if name_col else [f"Jeu {i}" for i in range(len(df_plot))]
-
-if "Platform" not in df_plot.columns:
-    plat_col = next((c for c in raw.columns if any(k in _norm(c) for k in ["platform","console","system"])), None)
-    df_plot["Platform"] = raw[plat_col] if plat_col else "N/A"
-
-if "Score_Avg" not in df_plot.columns:
-    df_plot["Score_Avg"] = df_plot[["Press_Score","Users_Score"]].mean(axis=1)
-
-# Filtre période récente (modifiable)
-df_notes_recent = df_plot[df_plot["Year"] >= 2015].copy()
-
-# Top 10 (meilleurs) / Flop 10 (pires) par moyenne
-top_avg = (df_notes_recent.sort_values(by="Score_Avg", ascending=False)
-           .drop_duplicates(subset=["Name","Platform"])
-           .head(10))
-flop_avg = (df_notes_recent.sort_values(by="Score_Avg", ascending=True)
-            .drop_duplicates(subset=["Name","Platform"])
-            .head(10))
-
-topflop_avg = pd.concat([top_avg.assign(cat="Top"), flop_avg.assign(cat="Flop")], ignore_index=True)
-
-if topflop_avg.empty:
-    st.warning("Aucune donnée après filtrage (Year ≥ 2015). Vérifie les colonnes Year/Name/Platform.")
-else:
-    # Ordre d'affichage : flops (bas scores) en bas, tops (hauts scores) en haut
-    topflop_avg["Name_disp"] = topflop_avg["Name"]  # étiquette Y
-    order_y = (topflop_avg
-               .sort_values(["cat","Score_Avg"], ascending=[True, True])  # Flop d'abord (croissant), puis Top (croissant)
-               ["Name_disp"]
-               .tolist())
-
-    # Couleurs cohérentes
-    color_map = {"Top": "#2E7D32", "Flop": "#E53935"}  # vert / rouge
-
-    import plotly.express as px
-    fig_tf = px.bar(
-        topflop_avg,
-        x="Score_Avg",
-        y="Name_disp",
-        color="cat",
-        orientation="h",
-        category_orders={"Name_disp": order_y, "cat": ["Flop","Top"]},
-        color_discrete_map=color_map,
-        text=topflop_avg["Score_Avg"].round(1).astype(str),
-        labels={"Score_Avg":"Score moyen (/10)", "Name_disp":"Jeu", "cat":""},
-        title="Top & Flop Ubisoft – Score moyen global (presse + utilisateurs)",
-        hover_data={
-            "Score_Avg":":.2f",
-            "Year":True,
-            "Platform":True,
-            "cat":False,
-            "Name_disp":False
-        },
-    )
-
-    # Style & lisibilité
-    # Hauteur adaptée au nombre de barres (environ 28px par barre)
-    base_h = 120
-    row_h = 28
-    fig_tf.update_layout(
-        height = base_h + row_h * len(order_y),
-        margin=dict(l=20, r=20, t=60, b=20),
-        legend_title_text="",
-        plot_bgcolor="white",
-        paper_bgcolor="white",
-        xaxis=dict(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)"),
-        yaxis=dict(showline=False)
-    )
-    # Valeur au bout de la barre
-    fig_tf.update_traces(textposition="outside", cliponaxis=False)
-
-    st.plotly_chart(fig_tf, use_container_width=True)
+        # Ordre d'affichage : flops (bas scores) en bas, tops (hauts scores) en haut
+        topflop_avg["Name_disp"] = topflop_avg["Name"]  # étiquette Y
+        order_y = (topflop_avg
+                   .sort_values(["cat","Score_Avg"], ascending=[True, True])  # Flop d'abord (croissant), puis Top (croissant)
+                   ["Name_disp"]
+                   .tolist())
+    
+        # Couleurs cohérentes
+        color_map = {"Top": "#2E7D32", "Flop": "#E53935"}  # vert / rouge
+    
+        import plotly.express as px
+        fig_tf = px.bar(
+            topflop_avg,
+            x="Score_Avg",
+            y="Name_disp",
+            color="cat",
+            orientation="h",
+            category_orders={"Name_disp": order_y, "cat": ["Flop","Top"]},
+            color_discrete_map=color_map,
+            text=topflop_avg["Score_Avg"].round(1).astype(str),
+            labels={"Score_Avg":"Score moyen (/10)", "Name_disp":"Jeu", "cat":""},
+            title="Top & Flop Ubisoft – Score moyen global (presse + utilisateurs)",
+            hover_data={
+                "Score_Avg":":.2f",
+                "Year":True,
+                "Platform":True,
+                "cat":False,
+                "Name_disp":False
+            },
+        )
+    
+        # Style & lisibilité
+        # Hauteur adaptée au nombre de barres (environ 28px par barre)
+        base_h = 120
+        row_h = 28
+        fig_tf.update_layout(
+            height = base_h + row_h * len(order_y),
+            margin=dict(l=20, r=20, t=60, b=20),
+            legend_title_text="",
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+            xaxis=dict(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)"),
+            yaxis=dict(showline=False)
+        )
+        # Valeur au bout de la barre
+        fig_tf.update_traces(textposition="outside", cliponaxis=False)
+    
+        st.plotly_chart(fig_tf, use_container_width=True)
 
     st.markdown("""
 Sur la période **2015–2025**, l’étude des **notes moyennes globales** (*presse + utilisateurs*) met en évidence une
@@ -2092,6 +2092,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
