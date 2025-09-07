@@ -1664,7 +1664,7 @@ utilisateurs et le produit livré, alimenté par des éléments récurrents dans
         # Tri de l’affichage (du plus faible au plus fort, puis inversion de l’axe Y pour avoir les meilleurs en haut)
         order_names = topflop_avg.sort_values("Score_Avg", ascending=True)["Name"]
     
-        fig, ax = plt.subplots(figsize=(8, 4))
+        fig, ax = plt.subplots(figsize=(12, 6))
         sns.barplot(
             data=topflop_avg,
             y="Name",
@@ -2089,6 +2089,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
