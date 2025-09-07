@@ -737,21 +737,18 @@ elif page == "Analyse financière comparative":
     if panel["annee"].notna().any():
         panel = panel[(panel["annee"].between(2018, 2024, inclusive="both")) | panel["annee"].isna()].copy()
     
-    # Palette de couleurs FIXE par éditeur (lisible et contrastée)
+    # Palette de couleurs FIXE par éditeur (contrastée)
     COLOR_MAP = {
-        "Ubisoft": "#E53935",                          # rouge
-        "Electronic Arts": "#1F77B4",                  # bleu
-        "Activision Blizzard": "#D62728",              # rouge foncé
+        "Ubisoft": "#E53935",                          # rouge vif
+        "Activision Blizzard": "#1F77B4",              # bleu foncé
+        "Electronic Arts": "#2CA02C",                  # vert
         "Nintendo": "#FF7F0E",                         # orange
-        "Sony Interactive Entertainment": "#2CA02C",   # vert
-        "Take Two": "#9467BD",                         # violet
-        "Bandai Namco": "#8C564B",                     # brun
-        # couleurs par défaut si d'autres éditeurs apparaissent
+        "Sony Interactive Entertainment": "#9467BD",   # violet
+        "Take Two": "#8C564B",                         # brun
+        "Bandai Namco": "#17BECF",                     # turquoise
     }
-    DEFAULT_COLORS = [
-        "#17BECF", "#BCBD22", "#7F7F7F", "#AEC7E8", "#FF9896", "#98DF8A"
-    ]
-    
+    DEFAULT_COLORS = ["#BCBD22", "#7F7F7F", "#AEC7E8", "#FF9896", "#98DF8A"]
+        
     def _get_color_map_for(df, label_col="Editeur"):
         unique = list(dict.fromkeys(df[label_col].astype(str)))
         mapping = {}
@@ -2037,6 +2034,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
