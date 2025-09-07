@@ -241,7 +241,7 @@ elif page == "Analyse financière comparative":
     
     # Style compact + lisible pour Streamlit
     fig.update_layout(
-        height=380,                         # plus petit que Matplotlib
+        height=420,                         # plus petit que Matplotlib
         margin=dict(l=40, r=20, t=60, b=40),
         legend_title_text="",
         title_x=0.5,
@@ -1904,6 +1904,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
