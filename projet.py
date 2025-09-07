@@ -698,8 +698,8 @@ elif page == "Analyse financière comparative":
         """)
         
 # ─────────────────────────────────────────────────────────────
-    # Bulles (Plotly) — 2 onglets : Profit vs CA  |  Masse salariale vs Effectif
-    # ─────────────────────────────────────────────────────────────
+# Bulles (Plotly) — 2 onglets : Profit vs CA  |  Masse salariale vs Effectif
+# ─────────────────────────────────────────────────────────────
     st.divider()
     st.subheader("Pour aller un peu plus loin...")
     tabs = st.tabs(["💶 Résultat net vs Chiffre d’affaires", "👥 Masse salariale vs Effectif total"])
@@ -725,17 +725,41 @@ elif page == "Analyse financière comparative":
         headc_col   = find_col(df.columns, ["effectif","headcount","employe","employee","staff"])
     
         panel = pd.DataFrame({"Editeur": df[ed_col]})
-        panel["annee"] = pd.to_datetime(df[an_col], errors="coerce").dt.year if an_col is not None else np.nan
-        panel["ca"]        = df[ca_col].apply(clean_numeric)       if ca_col      else 0.0
-        panel["profit"]    = df[profit_col].apply(clean_numeric)   if profit_col  else 0.0
-        panel["payroll"]   = df[payroll_col].apply(clean_numeric)  if payroll_col else 0.0
-        panel["headcount"] = df[headc_col].apply(clean_numeric)    if headc_col   else 0.0
+        panel["annee"]     = pd.to_datetime(df[an_col], errors="coerce").dt.year if an_col is not None else np.nan
+        panel["ca"]        = df[ca_col].apply(clean_numeric)      if ca_col      else 0.0
+        panel["profit"]    = df[profit_col].apply(clean_numeric)  if profit_col  else 0.0
+        panel["payroll"]   = df[payroll_col].apply(clean_numeric) if payroll_col else 0.0
+        panel["headcount"] = df[headc_col].apply(clean_numeric)   if headc_col   else 0.0
         return panel
     
     panel = _normalize_columns_for_panel(df_finance.copy())
     panel = panel.dropna(subset=["Editeur"])
     if panel["annee"].notna().any():
         panel = panel[(panel["annee"].between(2018, 2024, inclusive="both")) | panel["annee"].isna()].copy()
+    
+    # Palette de couleurs FIXE par éditeur (lisible et contrastée)
+    COLOR_MAP = {
+        "Ubisoft": "#E53935",                          # rouge
+        "Electronic Arts": "#1F77B4",                  # bleu
+        "Activision Blizzard": "#D62728",              # rouge foncé
+        "Nintendo": "#FF7F0E",                         # orange
+        "Sony Interactive Entertainment": "#2CA02C",   # vert
+        "Take Two": "#9467BD",                         # violet
+        "Bandai Namco": "#8C564B",                     # brun
+        # couleurs par défaut si d'autres éditeurs apparaissent
+    }
+    DEFAULT_COLORS = [
+        "#17BECF", "#BCBD22", "#7F7F7F", "#AEC7E8", "#FF9896", "#98DF8A"
+    ]
+    
+    def _get_color_map_for(df, label_col="Editeur"):
+        unique = list(dict.fromkeys(df[label_col].astype(str)))
+        mapping = {}
+        extra_i = 0
+        for lab in unique:
+            mapping[lab] = COLOR_MAP.get(lab, DEFAULT_COLORS[extra_i % len(DEFAULT_COLORS)])
+            extra_i += int(lab not in COLOR_MAP)
+        return mapping
     
     # Sélecteurs communs (répliqués par onglet pour plus de clarté)
     def _selectors(prefix: str):
@@ -769,11 +793,13 @@ elif page == "Analyse financière comparative":
         if dfp.empty:
             st.warning("Aucune donnée pour la sélection actuelle.")
         else:
-            # Échelle de taille douce via racine carrée (évite les bulles démesurées)
+            # taille recalculée à CHAQUE interaction → dynamique
             dfp["taille_bulle"] = np.sqrt(dfp["payroll"].clip(lower=0)) * (12 * size_scale)
     
+            color_map = _get_color_map_for(dfp, "Editeur")
             fig = px.scatter(
                 dfp, x="ca", y="profit", color="Editeur", size="taille_bulle",
+                color_discrete_map=color_map,
                 hover_data={"ca":":,.0f", "profit":":,.0f", "payroll":":,.0f", "taille_bulle":False, "Editeur":True},
                 labels={"ca":"Chiffre d’affaires (M€)", "profit":"Résultat net (M€)", "Editeur":""},
                 title="Résultat net (M€) en fonction du chiffre d’affaires (M€) — taille = masse salariale"
@@ -786,7 +812,11 @@ elif page == "Analyse financière comparative":
             )
             fig.update_xaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
             fig.update_yaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
-            fig.update_traces(hovertemplate="<b>%{customdata[3]}</b><br>CA: %{x:,.0f} M€<br>Résultat: %{y:,.0f} M€<br>Masse salariale: %{customdata[2]:,.0f} M€<extra></extra>".replace(",", " "))
+            fig.update_traces(
+                hovertemplate="<b>%{customdata[3]}</b><br>CA: %{x:,.0f} M€"
+                              "<br>Résultat: %{y:,.0f} M€"
+                              "<br>Masse salariale: %{customdata[2]:,.0f} M€<extra></extra>".replace(",", " ")
+            )
             st.plotly_chart(fig, use_container_width=True)
     
     # ========== Onglet 2 : Masse salariale vs Effectif total ==========
@@ -801,11 +831,12 @@ elif page == "Analyse financière comparative":
         if dfp2.empty:
             st.warning("Aucune donnée pour la sélection actuelle.")
         else:
-            # Taille liée aussi à la masse salariale (optionnel mais cohérent visuellement)
             dfp2["taille_bulle"] = np.sqrt(dfp2["payroll"].clip(lower=0)) * (12 * size_scale2)
     
+            color_map2 = _get_color_map_for(dfp2, "Editeur")
             fig2 = px.scatter(
                 dfp2, x="headcount", y="payroll", color="Editeur", size="taille_bulle",
+                color_discrete_map=color_map2,
                 hover_data={"headcount":":,.0f", "payroll":":,.0f", "taille_bulle":False, "Editeur":True},
                 labels={"headcount":"Effectif total (personnes)", "payroll":"Masse salariale (M€)", "Editeur":""},
                 title="Coût de la masse salariale (M€) en fonction de l’effectif total"
@@ -818,10 +849,12 @@ elif page == "Analyse financière comparative":
             )
             fig2.update_xaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
             fig2.update_yaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
-            fig2.update_traces(hovertemplate="<b>%{customdata[3]}</b><br>Effectif: %{x:,.0f}<br>Masse salariale: %{y:,.0f} M€<extra></extra>".replace(",", " "))
+            fig2.update_traces(
+                hovertemplate="<b>%{customdata[3]}</b><br>Effectif: %{x:,.0f}"
+                              "<br>Masse salariale: %{y:,.0f} M€<extra></extra>".replace(",", " ")
+            )
             st.plotly_chart(fig2, use_container_width=True)
 
-    
 # ────────────────────────────────────────────────
 # PAGE 3 : ANALYSE DES PERFORMANCES DES JEUX UBISOFT
 # ────────────────────────────────────────────────
@@ -2004,6 +2037,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
