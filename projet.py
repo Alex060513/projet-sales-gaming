@@ -1423,19 +1423,20 @@ elif page == "Perception et critique : la rupture avec les joueurs":
     st.plotly_chart(fig_users, use_container_width=True)
 
     # ───────── Analyse rapide
-    st.subheader(" Analyse")
+    st.subheader("Analyse")
     st.markdown("""
-    - **Presse** : notes majoritairement concentrées entre **6 et 8**, reflétant une évaluation globalement positive.
-    - **Joueurs** : distribution plus **étalée**, avec davantage de notes très basses → signe d'une **polarisation**.
+    - **Presse** : notes majoritairement concentrées entre **6 et 8**, reflétant une évaluation globalement positive.  
+    - **Joueurs** : distribution plus **étalée**, avec davantage de notes très basses → signe d'une **polarisation**.  
     - Cet écart révèle une différence de perception : Ubisoft convainc la presse mais divise parfois sa communauté.
     """)
-    # ——— Détection Year + agrégations annuelles
+    
     import unicodedata, re
+    
     def _norm(s: str) -> str:
         s = unicodedata.normalize("NFKD", str(s))
         s = "".join(c for c in s if not unicodedata.combining(c))
         return re.sub(r"[\s\-_\/]+", " ", s).strip().lower()
-
+    
     def _extract_year_column(df: pd.DataFrame) -> pd.Series | None:
         # 1) colonnes de date
         for c in df.columns:
@@ -1451,7 +1452,7 @@ elif page == "Perception et critique : la rupture avec les joueurs":
                 if ((y >= 1990) & (y <= 2035)).sum() > 0:
                     return y
         return None
-
+    
     year_series = _extract_year_column(raw)
     if year_series is None:
         st.warning("Aucune colonne de date/année reconnue : les graphiques temporels ne peuvent pas être tracés.")
@@ -1462,29 +1463,52 @@ elif page == "Perception et critique : la rupture avec les joueurs":
             "Users_Score": df_notes["Users_Score"].values,
         }).dropna()
         work = work[(work["Year"] >= 1995) & (work["Year"] <= 2035)]
-
+    
         yearly = (work.groupby("Year", as_index=False)
                         .agg(Press=("Press_Score","mean"),
                              Users=("Users_Score","mean"))
                         .sort_values("Year"))
+    
+        # ——— Graphique (Plotly) : courbes annuelles
+        st.subheader("Notes moyennes par année — Presse vs Joueurs")
+    
+        yearly_long = yearly.melt(
+            id_vars="Year",
+            value_vars=["Press", "Users"],
+            var_name="Source",
+            value_name="Note"
+        ).replace({"Press": "Presse", "Users": "Joueurs"})
+    
+        COLOR_LINE = {"Presse": "#2E7D32", "Joueurs": "#FB8C00"}
+    
+        fig_line = px.line(
+            yearly_long, x="Year", y="Note", color="Source", markers=True,
+            color_discrete_map=COLOR_LINE,
+            labels={"Year": "Année de sortie", "Note": "Note moyenne (sur 10)", "Source": "Source"},
+            title="Notes moyennes par année — Presse vs Joueurs"
+        )
+    
+        fig_line.update_layout(
+            height=420,
+            margin=dict(l=60, r=40, t=60, b=60),
+            legend_title_text="Source",
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+        )
+        fig_line.update_xaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
+        fig_line.update_yaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
+    
+        # repère "décrochage" en 2014
+        if yearly["Year"].min() <= 2014 <= yearly["Year"].max():
+            fig_line.add_vline(x=2014, line_width=2, line_dash="dash", line_color="#757575")
+            fig_line.add_annotation(
+                x=2014 + 0.3, y=0.06, xref="x", yref="paper",
+                text="Décrochage des notes des joueurs",
+                showarrow=False, font=dict(color="#616161", size=12)
+            )
+    
+        st.plotly_chart(fig_line, use_container_width=True)
 
-        # ——— Graphique 1 : courbes annuelles
-        st.subheader(" Notes moyennes par année — Presse vs Joueurs")
-        fig_line, axl = plt.subplots(figsize=(10, 5))
-        axl.plot(yearly["Year"], yearly["Press"], marker="o", linewidth=2.2, label="Presse", color="#2E7D32")
-        axl.plot(yearly["Year"], yearly["Users"], marker="o", linewidth=2.2, label="Joueurs", color="#FB8C00")
-        axl.set_xlabel("Année de sortie"); axl.set_ylabel("Note moyenne (sur 10)")
-        axl.grid(True, linestyle="--", alpha=0.35)
-        axl.legend(title="Source", frameon=True)
-
-        # repère « décrochage » (si l'année est dans la série)
-        if (yearly["Year"] >= 2014).any() and (yearly["Year"] <= 2014).any():
-            axl.axvline(2014, color="#757575", linestyle="--", alpha=0.6)
-            ymin, ymax = axl.get_ylim()
-            axl.text(2014 + 0.2, ymin + 0.05*(ymax-ymin),
-                     "Décrochage des notes des joueurs", fontsize=9, color="#616161")
-
-        st.pyplot(fig_line)
         # ——— Graphique 2 : écart moyen annuel (Users − Press)
         st.subheader(" Écart moyen entre notes utilisateurs et presse ")
         delta = yearly.copy()
@@ -2047,6 +2071,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
