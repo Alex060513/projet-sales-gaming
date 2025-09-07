@@ -760,7 +760,6 @@ elif page == "Analyse financière comparative":
             an_range2 = (2018, 2024)
     with colsC:
         size_scale = st.slider("Échelle des bulles (masse salariale)", 0.1, 2.0, 0.7, 0.1)
-        alpha_pts  = st.slider("Transparence", 0.2, 1.0, 0.8, 0.1)
 
     if panel["annee"].notna().any():
         dfp_panel = panel[(panel["Editeur"].isin(editeurs_sel)) &
@@ -1979,6 +1978,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
