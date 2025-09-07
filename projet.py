@@ -385,15 +385,7 @@ elif page == "Analyse financière comparative":
     # Graphiques comparatifs CA, Résultat net, Masse salariale (interactifs)
     # ────────────────────────────────────────────────
     # ────────────────────────────────────────────────
-    # Texte d'intro (on garde)
-    # ────────────────────────────────────────────────
-    st.divider()
-    st.markdown("""
-    Plus préoccupant encore, **le chiffre d’affaires d’Ubisoft n’évolue quasiment pas**, alors que la majorité des **concurrents**
-    (*Sony Interactive Entertainment, Electronic Arts, Bandai Namco*, etc.) affichent **une croissance continue**.  
-    Cette **stagnation** est un **signal d’alerte fort**, d’autant plus que le **marché global du jeu vidéo** est, lui, **en croissance**.
-    """)
-    
+   
     # ────────────────────────────────────────────────
     # Préparation des 3 DataFrames une seule fois
     # ────────────────────────────────────────────────
@@ -1965,6 +1957,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
