@@ -1877,7 +1877,7 @@ Beaucoup de joueurs font explicitement référence à *Black Flag*, renforçant 
     aux côtés de productions ayant connu un **succès énorme** comme **GTA V** ou **Call of Duty: Modern Warfare**.
     """)
     
-    # --- Données fictives de l'étude AAA (à adapter si besoin)
+    # --- Données fictives de l'étude AAA
     data_budget = {
         "Jeu": [
             "Assassin's Creed II", "Far Cry 3", "The Last of Us Part II",
@@ -1889,37 +1889,48 @@ Beaucoup de joueurs font explicitement référence à *Black Flag*, renforçant 
     }
     df_budget = pd.DataFrame(data_budget)
     
-    # Couleur dédiée pour Skull & Bones
-    df_budget["Couleur"] = np.where(df_budget["Jeu"] == "Skull and Bones", "#fdae6b", "#6baed6")
+    # --- Graphique en Plotly
+    colors = ["#fdae6b" if jeu == "Skull and Bones" else "#6baed6" for jeu in df_budget["Jeu"]]
     
-    # --- Graphique Plotly (barres horizontales)
     fig = px.bar(
         df_budget,
-        x="Budget", y="Jeu",
+        y="Jeu",
+        x="Budget",
         orientation="h",
         title="Budgets de production des jeux AAA",
         labels={"Budget": "Budget (en millions $)", "Jeu": "Jeu"},
+        color=df_budget["Jeu"],
+        color_discrete_map={jeu: col for jeu, col in zip(df_budget["Jeu"], colors)}
     )
     
-    # Appliquer nos couleurs (une seule trace → on peut pousser la liste complète)
-    fig.update_traces(marker=dict(color=df_budget["Couleur"], line=dict(width=0)))
-    
-    # Ligne rouge verticale au niveau du budget de Skull & Bones (200 M$)
+    # --- Ligne rouge verticale
     fig.add_vline(
-        x=200, line_color="red", line_dash="dash", line_width=2,
-        annotation_text="Budget Skull & Bones", annotation_position="top right",
-        annotation_font_color="red", annotation_font_size=12
+        x=200, line=dict(color="red", width=2, dash="dash"),
     )
     
-    # Mise en forme
+    # --- Annotation alignée avec la barre "Skull and Bones"
+    fig.add_annotation(
+        x=205,  # léger décalage à droite de la ligne
+        y="Skull and Bones",
+        text="Budget Skull & Bones",
+        showarrow=False,
+        font=dict(color="red", size=12),
+        xanchor="left",
+        yanchor="middle"
+    )
+    
+    # --- Mise en forme
     fig.update_layout(
-        height=460,
-        margin=dict(l=60, r=30, t=60, b=50),
-        plot_bgcolor="white", paper_bgcolor="white",
+        height=500,
+        margin=dict(l=80, r=40, t=60, b=40),
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        showlegend=False
     )
-    fig.update_xaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
-    fig.update_yaxes(showline=False)
+    fig.update_xaxes(showline=True, linecolor="black", gridcolor="rgba(0,0,0,.1)")
+    fig.update_yaxes(showline=False, gridcolor="rgba(0,0,0,0)")
     
+    # --- Affichage Streamlit
     st.plotly_chart(fig, use_container_width=True)
     
     # ——— Texte d’interprétation (après le graphique budget)
@@ -2101,6 +2112,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
