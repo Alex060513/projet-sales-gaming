@@ -1508,43 +1508,58 @@ elif page == "Perception et critique : la rupture avec les joueurs":
             )
     
         st.plotly_chart(fig_line, use_container_width=True)
+    
+    # ——— Graphique 2 (Plotly) : écart moyen annuel (Users − Press)
+    st.subheader("Écart moyen entre notes utilisateurs et presse")
+    
+    delta = yearly.copy()
+    delta["Diff"] = delta["Users"] - delta["Press"]
+    
+    # Palette rouge dégradée pour les valeurs négatives
+    reds_palette = px.colors.sequential.Reds
+    neg_vals = delta["Diff"].clip(upper=0).abs()
+    neg_norm = (neg_vals / neg_vals.max()).fillna(0.0)
+    
+    def red_shade(nn: float) -> str:
+        # nn ∈ [0,1] → indice dans la palette Reds, en évitant les rouges trop clairs
+        idx = int(round((0.40 + 0.60 * nn) * (len(reds_palette) - 1)))
+        return reds_palette[max(0, min(idx, len(reds_palette) - 1))]
+    
+    bar_colors = [
+        "#1f77b4" if d >= 0 else red_shade(nn)
+        for d, nn in zip(delta["Diff"], neg_norm)
+    ]
+    
+    fig_bar = px.bar(
+        delta, x="Year", y="Diff",
+        labels={"Year": "Année de sortie", "Diff": "Score delta (Users − Press)"},
+        title="Écart moyen entre notes utilisateurs et presse"
+    )
+    fig_bar.update_traces(
+        marker_color=bar_colors,
+        hovertemplate="Année=%{x}<br>Delta (Users − Presse): %{y:.2f}<extra></extra>"
+    )
+    
+    # Ligne horizontale à 0
+    fig_bar.add_hline(y=0, line_color="black", line_width=1)
+    
+    # Mise en forme compacte
+    fig_bar.update_layout(
+        height=420, margin=dict(l=60, r=40, t=60, b=50),
+        plot_bgcolor="white", paper_bgcolor="white",
+        legend_title_text="Interprétation des couleurs",
+    )
+    fig_bar.update_xaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
+    fig_bar.update_yaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
+    
+    # Légende explicative (traces factices)
+    fig_bar.add_bar(x=[None], y=[None], marker_color="#1f77b4",
+                    name="Joueurs plus généreux que la presse", showlegend=True)
+    fig_bar.add_bar(x=[None], y=[None], marker_color=reds_palette[-2],
+                    name="Joueurs plus critiques que la presse", showlegend=True)
+    
+    st.plotly_chart(fig_bar, use_container_width=True)
 
-        # ——— Graphique 2 : écart moyen annuel (Users − Press)
-        st.subheader(" Écart moyen entre notes utilisateurs et presse ")
-        delta = yearly.copy()
-        delta["Diff"] = delta["Users"] - delta["Press"]
-
-        # couleurs: bleu si positif, dégradé de rouge si négatif
-        import matplotlib as mpl
-        reds = mpl.cm.get_cmap("Reds")
-        neg_vals = delta["Diff"].clip(upper=0).abs()
-        if neg_vals.max() == 0:
-            neg_norm = np.zeros_like(neg_vals)
-        else:
-            neg_norm = neg_vals / neg_vals.max()
-
-        colors = []
-        for d, nn in zip(delta["Diff"], neg_norm):
-            if d >= 0:
-                colors.append("#1f77b4")          # bleu (joueurs plus généreux)
-            else:
-                colors.append(reds(0.35 + 0.55*nn))  # rouge plus sombre si l’écart est grand
-
-        fig_bar, axb = plt.subplots(figsize=(10, 5))
-        axb.bar(delta["Year"], delta["Diff"], color=colors, width=0.8, edgecolor="none")
-        axb.axhline(0, color="black", linewidth=1)
-        axb.set_xlabel("Année de sortie"); axb.set_ylabel("Score delta (Users − Press)")
-        axb.grid(axis="y", linestyle="--", alpha=0.35)
-
-        # petite légende manuelle
-        from matplotlib.patches import Patch
-        legend_elems = [
-            Patch(facecolor="#1f77b4", label="Joueurs plus généreux que la presse"),
-            Patch(facecolor=reds(0.8), label="Joueurs plus critiques que la presse"),
-        ]
-        axb.legend(handles=legend_elems, title="Interprétation des couleurs", frameon=True)
-
-        st.pyplot(fig_bar)
     st.markdown("""
 
 
@@ -2071,6 +2086,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
