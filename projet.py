@@ -501,7 +501,6 @@ elif page == "Analyse financière comparative":
     
     # ============ TAB 1 — Chiffre d’affaires ============
     with tab_ca:
-        st.subheader("Évolution du chiffre d’affaires (2018–2024)")
     
         # ⬇️ le paragraphe est maintenant DANS l’onglet, sous le subheader
         st.markdown("""
@@ -590,7 +589,6 @@ elif page == "Analyse financière comparative":
         
     # ---- Onglet 2 : Résultat net
     with tab_profit:
-        st.subheader("Résultat net (M€) — évolution 2018–2024")
         editeurs_p = sorted(data_profit["Editeur"].unique().tolist())
         col1, col2 = st.columns([2,1])
         with col1:
@@ -633,7 +631,6 @@ elif page == "Analyse financière comparative":
     
     # ---- Onglet 3 : Masse salariale
     with tab_payroll:
-        st.subheader("Masse salariale (M€) — évolution 2018–2024")
         editeurs_pay = sorted(data_payroll["Editeur"].unique().tolist())
         c1, c2 = st.columns([2,1])
         with c1:
@@ -1958,6 +1955,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
