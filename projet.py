@@ -219,21 +219,37 @@ elif page == "Analyse financière comparative":
     """)
 
     st.subheader(" Comparaison Ubisoft vs ETF ESPO & HERO")
+
+    # Données
     df_etf = pd.DataFrame({
         "Année":   [2020, 2021, 2022, 2023, 2024],
         "Ubisoft": [85,   75,   50,   25,   10],
         "ESPO":    [100,  110,  90,   120,  140],
         "HERO":    [95,   105,  85,   115,  135],
     })
-    fig2, ax2 = plt.subplots(figsize=(10, 6))
-    ax2.plot(df_etf["Année"], df_etf["Ubisoft"], marker="o", color="red",   label="Ubisoft")
-    ax2.plot(df_etf["Année"], df_etf["ESPO"],    marker="o", color="green", label="ESPO")
-    ax2.plot(df_etf["Année"], df_etf["HERO"],    marker="o", color="blue",  label="HERO")
-    ax2.set_title("Évolution du cours Ubisoft vs ESPO & HERO (5 dernières années)", fontsize=14)
-    ax2.set_xlabel("Année"); ax2.set_ylabel("Valeur normalisée (base 100)")
-    ax2.grid(True, linestyle="--", alpha=0.6); ax2.legend()
-    ax2.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-    st.pyplot(fig2)
+    
+    # Long format pour Plotly
+    df_long = df_etf.melt(id_vars="Année", var_name="Actif", value_name="Valeur")
+    
+    # Graph interactif
+    fig = px.line(
+        df_long, x="Année", y="Valeur", color="Actif", markers=True,
+        title="Évolution du cours Ubisoft vs ESPO & HERO (5 dernières années)"
+    )
+    
+    # Style compact + lisible pour Streamlit
+    fig.update_layout(
+        height=380,                         # plus petit que Matplotlib
+        margin=dict(l=40, r=20, t=60, b=40),
+        legend_title_text="",
+        title_x=0.5,
+        yaxis_title="Valeur normalisée (base 100)",
+        xaxis=dict(tickmode="linear")       # années entières
+    )
+    fig.update_traces(hovertemplate="Année=%{x}<br>%{legendgroup}: %{y}")
+    
+    # Affichage responsive (s’ajuste à la colonne)
+    st.plotly_chart(fig, use_container_width=True)  # <- clé pour éviter un graphe trop large
     st.divider()
 
     # ── PARTIE 3 : CA cumulé par éditeur (lecture robuste depuis df_finance)
@@ -1839,6 +1855,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
