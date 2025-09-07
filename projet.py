@@ -700,8 +700,8 @@ elif page == "Analyse financière comparative":
 # ─────────────────────────────────────────────────────────────
     # Bulles (Plotly) — 2 onglets : Profit vs CA  |  Masse salariale vs Effectif
     # ─────────────────────────────────────────────────────────────
-    st.subheader("Pour aller un peu plus loin...")
     st.divider()
+    st.subheader("Pour aller un peu plus loin...")
     tabs = st.tabs(["💶 Résultat net vs Chiffre d’affaires", "👥 Masse salariale vs Effectif total"])
     
     def _normalize_columns_for_panel(df_in: pd.DataFrame) -> pd.DataFrame:
@@ -2004,6 +2004,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
