@@ -635,6 +635,11 @@ elif page == "Analyse financière comparative":
     
     # ---- Onglet 3 : Masse salariale
     with tab_payroll:
+        st.markdown("""
+        L’un des écarts les plus marquants est observé au niveau de la **masse salariale**.
+        **Ubisoft** emploie un volume de salariés **comparable** à celui **d’Activision Blizzard**, mais ses **performances financières** sont nettement **inférieures**.
+        Par exemple, **Electronic Arts** opère avec environ **un tiers de personnel en moins**, tout en générant un **chiffre d’affaires** et un **résultat net** largement supérieurs.
+        """)
         editeurs_pay = sorted(data_payroll["Editeur"].unique().tolist())
         c1, c2 = st.columns([2,1])
         with c1:
@@ -1959,6 +1964,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
