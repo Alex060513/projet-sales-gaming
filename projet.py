@@ -1379,6 +1379,12 @@ elif page == "Perception et critique : la rupture avec les joueurs":
     
     x_min, x_max = 0, 10
     
+    # Valeur max commune pour l'échelle Y
+    max_val = max(
+        df_notes["Press_Score"].value_counts().max(),
+        df_notes["Users_Score"].value_counts().max()
+    )
+    
     # Distribution Presse
     fig_press = px.histogram(
         df_notes,
@@ -1391,10 +1397,9 @@ elif page == "Perception et critique : la rupture avec les joueurs":
     fig_press.update_traces(marker_line_width=0.5, marker_line_color="white")
     fig_press.update_layout(
         height=300,
-        margin=dict(l=40, r=20, t=60, b=40),
         bargap=0.05,
         xaxis=dict(range=[x_min, x_max]),
-        yaxis_title="Nombre de jeux",
+        yaxis=dict(title="Nombre de jeux", range=[0, max_val]),
         plot_bgcolor="white",
         paper_bgcolor="white",
     )
@@ -1412,16 +1417,14 @@ elif page == "Perception et critique : la rupture avec les joueurs":
     fig_users.update_traces(marker_line_width=0.5, marker_line_color="white")
     fig_users.update_layout(
         height=300,
-        margin=dict(l=40, r=20, t=60, b=40),
         bargap=0.05,
-        xaxis=dict(range=[x_min, x_max]),
-        xaxis_title="Notes",
-        yaxis_title="Nombre de jeux",
+        xaxis=dict(range=[x_min, x_max], title="Notes"),
+        yaxis=dict(title="Nombre de jeux", range=[0, max_val]),
         plot_bgcolor="white",
         paper_bgcolor="white",
     )
     st.plotly_chart(fig_users, use_container_width=True)
-    
+
 
     # ───────── Analyse rapide
     st.subheader(" Analyse")
@@ -2048,6 +2051,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
