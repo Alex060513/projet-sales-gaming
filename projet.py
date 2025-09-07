@@ -575,7 +575,7 @@ elif page == "Analyse financière comparative":
             total_width = 0.8
             bar_width = total_width / max(n_pub,1)
             x = list(range(len(annees)))
-            fig, ax = plt.subplots(figsize=(8,6))
+            fig, ax = plt.subplots(figsize=(6,4))
             for i, pub in enumerate(publishers):
                 y_vals = [float(dfp[(dfp["Editeur"]==pub) & (dfp["annee"]==a)]["valeur"].sum()) for a in annees]
                 offsets = [xx + (i - (n_pub-1)/2)*bar_width for xx in x]
@@ -620,7 +620,7 @@ elif page == "Analyse financière comparative":
             annees_p = sorted(dfp_p["annee"].unique().tolist())
             pubs_p = sel_ed_p; n_pub_p = len(pubs_p)
             total_w = 0.8; bw = total_w / max(n_pub_p,1); x = list(range(len(annees_p)))
-            figp, axp = plt.subplots(figsize=(10,6))
+            figp, axp = plt.subplots(figsize=(6,4))
             for i, pub in enumerate(pubs_p):
                 yv = [float(dfp_p[(dfp_p["Editeur"]==pub) & (dfp_p["annee"]==a)]["valeur"].sum()) for a in annees_p]
                 offs = [xx + (i - (n_pub_p-1)/2)*bw for xx in x]
@@ -668,7 +668,7 @@ elif page == "Analyse financière comparative":
             pubs_pay = sel_editeurs_pay
             n_pub_pay = len(pubs_pay)
             total_w = 0.8; bw = total_w / max(n_pub_pay,1); x = list(range(len(annees_pay)))
-            figp2, axp2 = plt.subplots(figsize=(10,6))
+            figp2, axp2 = plt.subplots(figsize=(6,4))
             for i, pub in enumerate(pubs_pay):
                 y_vals = [float(dfp_pay[(dfp_pay["Editeur"]==pub) & (dfp_pay["annee"]==a)]["valeur"].sum()) for a in annees_pay]
                 offs = [xx + (i - (n_pub_pay-1)/2)*bw for xx in x]
@@ -1964,6 +1964,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
