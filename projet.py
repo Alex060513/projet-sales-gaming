@@ -527,12 +527,7 @@ elif page == "Analyse financière comparative":
     
     # ============ TAB 1 — Chiffre d’affaires ============
     with tab_ca:
-        st.markdown("""
-        Plus préoccupant encore, **le chiffre d’affaires d’Ubisoft n’évolue quasiment pas**, 
-        alors que la majorité des **concurrents** (*Sony Interactive Entertainment, Electronic Arts, Bandai Namco*, etc.*)
-        affichent **une croissance continue**.  
-        Cette **stagnation** est un **signal d’alerte fort**, d’autant plus que le **marché global du jeu vidéo** est, lui, **en croissance**.
-        """)
+
     
         # ---- Votre code CA (préparation inchangée) ----
         def _to_long(df_in: pd.DataFrame) -> pd.DataFrame:
@@ -609,7 +604,12 @@ elif page == "Analyse financière comparative":
             _legend_below(ax, n_pub)
             fig.subplots_adjust(bottom=0.28)   # room for legend
             st.pyplot(fig, clear_figure=True)
-    
+            st.markdown("""
+        Plus préoccupant encore, **le chiffre d’affaires d’Ubisoft n’évolue quasiment pas**, 
+        alors que la majorité des **concurrents** (*Sony Interactive Entertainment, Electronic Arts, Bandai Namco*, etc.*)
+        affichent **une croissance continue**.  
+        Cette **stagnation** est un **signal d’alerte fort**, d’autant plus que le **marché global du jeu vidéo** est, lui, **en croissance**.
+        """)
     # ---- Onglet 2 : Résultat net
     with tab_profit:
         st.markdown("""
@@ -1979,6 +1979,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
