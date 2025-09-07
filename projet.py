@@ -1867,17 +1867,17 @@ Beaucoup de joueurs font explicitement référence à *Black Flag*, renforçant 
 
     # --- Titre de la section
     st.markdown("## 3.4. Un désalignement total entre budget, durée et résultat")
-
+    
     # ——— Texte introductif (au-dessus du graphique budget)
     st.markdown("""
-Ce qui rend **Skull & Bones** encore plus problématique, c’est la **disproportion**
-entre les **moyens engagés** et la **qualité perçue**.  
-Avec un **budget estimé à plus de 200 millions de dollars** *(voire **500 M$** selon certaines sources,
-notamment d’anciens employés d’Ubisoft)*, le jeu se classe parmi les **plus ambitieux de l’industrie**,  
-aux côtés de productions ayant connu un **succès énorme** comme **GTA V** ou **Call of Duty: Modern Warfare**.
-""")
-
-    # --- Données fictives de l'étude AAA (à adapter selon tes fichiers CSV si nécessaire)
+    Ce qui rend **Skull & Bones** encore plus problématique, c’est la **disproportion**
+    entre les **moyens engagés** et la **qualité perçue**.  
+    Avec un **budget estimé à plus de 200 millions de dollars** *(voire **500 M$** selon certaines sources,
+    notamment d’anciens employés d’Ubisoft)*, le jeu se classe parmi les **plus ambitieux de l’industrie**,  
+    aux côtés de productions ayant connu un **succès énorme** comme **GTA V** ou **Call of Duty: Modern Warfare**.
+    """)
+    
+    # --- Données fictives de l'étude AAA (à adapter si besoin)
     data_budget = {
         "Jeu": [
             "Assassin's Creed II", "Far Cry 3", "The Last of Us Part II",
@@ -1887,36 +1887,48 @@ aux côtés de productions ayant connu un **succès énorme** comme **GTA V** ou
         ],
         "Budget": [80, 90, 110, 120, 130, 150, 200, 220, 265, 350]
     }
-
     df_budget = pd.DataFrame(data_budget)
-
-    # --- Création du graphique
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.barplot(
-        data=df_budget,
-        y="Jeu",
-        x="Budget",
-        palette=["#6baed6" if jeu != "Skull and Bones" else "#fdae6b" for jeu in df_budget["Jeu"]],
-        ax=ax
+    
+    # Couleur dédiée pour Skull & Bones
+    df_budget["Couleur"] = np.where(df_budget["Jeu"] == "Skull and Bones", "#fdae6b", "#6baed6")
+    
+    # --- Graphique Plotly (barres horizontales)
+    fig = px.bar(
+        df_budget,
+        x="Budget", y="Jeu",
+        orientation="h",
+        title="Budgets de production des jeux AAA",
+        labels={"Budget": "Budget (en millions $)", "Jeu": "Jeu"},
     )
-
-    # --- Ligne rouge verticale sur le budget de Skull & Bones
-    ax.axvline(200, color="red", linestyle="--", linewidth=2, label="Budget Skull & Bones")
-
-    # --- Personnalisation graphique
-    ax.set_title("Budgets de production des jeux AAA", fontsize=14, fontweight="bold")
-    ax.set_xlabel("Budget (en millions $)")
-    ax.set_ylabel("Jeu")
-    ax.legend()
-
-    # --- Affichage
-    st.pyplot(fig)
+    
+    # Appliquer nos couleurs (une seule trace → on peut pousser la liste complète)
+    fig.update_traces(marker=dict(color=df_budget["Couleur"], line=dict(width=0)))
+    
+    # Ligne rouge verticale au niveau du budget de Skull & Bones (200 M$)
+    fig.add_vline(
+        x=200, line_color="red", line_dash="dash", line_width=2,
+        annotation_text="Budget Skull & Bones", annotation_position="top right",
+        annotation_font_color="red", annotation_font_size=12
+    )
+    
+    # Mise en forme
+    fig.update_layout(
+        height=460,
+        margin=dict(l=60, r=30, t=60, b=50),
+        plot_bgcolor="white", paper_bgcolor="white",
+    )
+    fig.update_xaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
+    fig.update_yaxes(showline=False)
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
     # ——— Texte d’interprétation (après le graphique budget)
     st.markdown("""
-En comparant la **durée de développement**, le **budget** et la **note Metacritic** de ces jeux,
-on observe que **Skull & Bones** se positionne à l’**extrême** : **coûteux**, **le plus long à produire**,
-avec **le score critique le plus bas**.
-""")
+    En comparant la **durée de développement**, le **budget** et la **note Metacritic** de ces jeux,
+    on observe que **Skull & Bones** se positionne à l’**extrême** : **coûteux**, **le plus long à produire**,
+    avec **le score critique le plus bas**.
+    """)
+
     # ────────────────────────────────────────────────
     # Durée de Développement vs Note Metacritic (bulles = budget) — version Seaborn/Matplotlib pour Streamlit
     # ────────────────────────────────────────────────
@@ -2089,6 +2101,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
