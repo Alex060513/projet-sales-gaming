@@ -590,10 +590,8 @@ elif page == "Analyse financière comparative":
     # ---- Onglet 2 : Résultat net
     with tab_profit:
         st.markdown("""
-        Plus préoccupant encore, **le chiffre d’affaires d’Ubisoft n’évolue quasiment pas**, 
-        alors que la majorité des **concurrents** (*Sony Interactive Entertainment, Electronic Arts, Bandai Namco*, etc.)
-        affichent **une croissance continue**.  
-        Cette **stagnation** est un **signal d’alerte fort**, d’autant plus que le **marché global du jeu vidéo** est, lui, **en croissance**.
+        **Le résultat net cumulé d’Ubisoft est en net retrait par rapport à ses pairs**, alors que la majorité de ses concurrents restent **bénéficiaires** sur la même période. 
+        **Ce déficit chronique** montre qu’Ubisoft ne parvient pas à **transformer ses ventes en valeur** pour ses actionnaires, et que sa **structure de coûts** n’est pas suffisamment maîtrisée.
         """)
         editeurs_p = sorted(data_profit["Editeur"].unique().tolist())
         col1, col2 = st.columns([2,1])
@@ -1961,6 +1959,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
