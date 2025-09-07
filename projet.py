@@ -575,7 +575,7 @@ elif page == "Analyse financière comparative":
             total_width = 0.8
             bar_width = total_width / max(n_pub,1)
             x = list(range(len(annees)))
-            fig, ax = plt.subplots(figsize=(10,6))
+            fig, ax = plt.subplots(figsize=(8,6))
             for i, pub in enumerate(publishers):
                 y_vals = [float(dfp[(dfp["Editeur"]==pub) & (dfp["annee"]==a)]["valeur"].sum()) for a in annees]
                 offsets = [xx + (i - (n_pub-1)/2)*bar_width for xx in x]
@@ -1964,6 +1964,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
