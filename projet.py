@@ -353,7 +353,7 @@ elif page == "Analyse financière comparative":
             hovertemplate="<b>%{x}</b><br>CA cumulé : %{y:,.0f} M€<extra></extra>".replace(",", " ")
         )
         fig.update_layout(
-            height=360,  # plus petit
+            height=420,  # plus petit
             margin=dict(l=40, r=20, t=60, b=40),
             title_x=0.5,
             legend_title_text="",
@@ -1904,6 +1904,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
