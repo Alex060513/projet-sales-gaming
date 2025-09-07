@@ -500,7 +500,7 @@ elif page == "Analyse financière comparative":
     )
     
     # ----- Common plot style helpers -----
-    FIG_W, FIG_H = 7.5, 3.8
+    FIG_W, FIG_H = 6.0, 2.8
     TITLE_FS = 11
     LABEL_FS = 9
     TICK_FS  = 8
@@ -1979,6 +1979,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
