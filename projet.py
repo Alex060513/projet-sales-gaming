@@ -384,259 +384,259 @@ elif page == "Analyse financière comparative":
     # ────────────────────────────────────────────────
     # Graphiques comparatifs CA, Résultat net, Masse salariale (interactifs)
     # ────────────────────────────────────────────────
-# ────────────────────────────────────────────────
-# Texte d'intro (on garde)
-# ────────────────────────────────────────────────
-st.divider()
-st.markdown("""
-Plus préoccupant encore, **le chiffre d’affaires d’Ubisoft n’évolue quasiment pas**, alors que la majorité des **concurrents**
-(*Sony Interactive Entertainment, Electronic Arts, Bandai Namco*, etc.) affichent **une croissance continue**.  
-Cette **stagnation** est un **signal d’alerte fort**, d’autant plus que le **marché global du jeu vidéo** est, lui, **en croissance**.
-""")
-
-# ────────────────────────────────────────────────
-# Préparation des 3 DataFrames une seule fois
-# ────────────────────────────────────────────────
-def _to_long(df_in: pd.DataFrame) -> pd.DataFrame:
-    df = df_in.rename(columns={c: unicodedata.normalize("NFKD", str(c)).encode("ascii","ignore").decode().strip().lower()
-                               for c in df_in.columns})
-    year_cols = [c for c in df.columns if re.fullmatch(r'(?:fy)?(20(1[8-9]|2[0-4]))', c)]
-    if not year_cols:
-        year_cols = [c for c in df.columns if re.search(r'20(1[8-9]|2[0-4])', c)]
-    ed_col = next((c for c in df.columns if c in
-                   ["editeur","publisher","entreprise","societe","company","studio","nom","compagnie"]), None)
-    if ed_col is None:
-        for c in df.columns:
-            if df[c].dtype == object:
-                ed_col = c; break
-    if ed_col is None:
-        raise ValueError("Colonne éditeur introuvable.")
-    if year_cols:
-        long = df[[ed_col] + year_cols].copy().melt(id_vars=[ed_col], var_name="annee", value_name="valeur")
-        long["annee"] = long["annee"].astype(str).str.extract(r'(20\d{2})').astype(int)
+    # ────────────────────────────────────────────────
+    # Texte d'intro (on garde)
+    # ────────────────────────────────────────────────
+    st.divider()
+    st.markdown("""
+    Plus préoccupant encore, **le chiffre d’affaires d’Ubisoft n’évolue quasiment pas**, alors que la majorité des **concurrents**
+    (*Sony Interactive Entertainment, Electronic Arts, Bandai Namco*, etc.) affichent **une croissance continue**.  
+    Cette **stagnation** est un **signal d’alerte fort**, d’autant plus que le **marché global du jeu vidéo** est, lui, **en croissance**.
+    """)
+    
+    # ────────────────────────────────────────────────
+    # Préparation des 3 DataFrames une seule fois
+    # ────────────────────────────────────────────────
+    def _to_long(df_in: pd.DataFrame) -> pd.DataFrame:
+        df = df_in.rename(columns={c: unicodedata.normalize("NFKD", str(c)).encode("ascii","ignore").decode().strip().lower()
+                                   for c in df_in.columns})
+        year_cols = [c for c in df.columns if re.fullmatch(r'(?:fy)?(20(1[8-9]|2[0-4]))', c)]
+        if not year_cols:
+            year_cols = [c for c in df.columns if re.search(r'20(1[8-9]|2[0-4])', c)]
+        ed_col = next((c for c in df.columns if c in
+                       ["editeur","publisher","entreprise","societe","company","studio","nom","compagnie"]), None)
+        if ed_col is None:
+            for c in df.columns:
+                if df[c].dtype == object:
+                    ed_col = c; break
+        if ed_col is None:
+            raise ValueError("Colonne éditeur introuvable.")
+        if year_cols:
+            long = df[[ed_col] + year_cols].copy().melt(id_vars=[ed_col], var_name="annee", value_name="valeur")
+            long["annee"] = long["annee"].astype(str).str.extract(r'(20\d{2})').astype(int)
+            long["valeur"] = long["valeur"].apply(clean_numeric)
+            long = long.rename(columns={ed_col:"Editeur"})
+            return long
+        an_col = next((c for c in df.columns if c in ["annee","year","date"] or "annee" in c or "year" in c or "date" in c), None)
+        val_col = next((c for c in df.columns if any(k in c for k in ["chiffre","revenue","revenu","sales","ca"])), None)
+        if an_col is None or val_col is None:
+            raise ValueError("Colonnes requises non trouvées (Année + CA).")
+        long = df[[ed_col, an_col, val_col]].copy().rename(columns={ed_col:"Editeur", an_col:"annee", val_col:"valeur"})
+        long["annee"] = pd.to_datetime(long["annee"], errors="coerce").dt.year
         long["valeur"] = long["valeur"].apply(clean_numeric)
-        long = long.rename(columns={ed_col:"Editeur"})
         return long
-    an_col = next((c for c in df.columns if c in ["annee","year","date"] or "annee" in c or "year" in c or "date" in c), None)
-    val_col = next((c for c in df.columns if any(k in c for k in ["chiffre","revenue","revenu","sales","ca"])), None)
-    if an_col is None or val_col is None:
-        raise ValueError("Colonnes requises non trouvées (Année + CA).")
-    long = df[[ed_col, an_col, val_col]].copy().rename(columns={ed_col:"Editeur", an_col:"annee", val_col:"valeur"})
-    long["annee"] = pd.to_datetime(long["annee"], errors="coerce").dt.year
-    long["valeur"] = long["valeur"].apply(clean_numeric)
-    return long
-
-def to_long_metric(df_in: pd.DataFrame, metric_keywords) -> pd.DataFrame:
-    df = df_in.rename(columns={c: norm_col(c) for c in df_in.columns})
-    year_cols = [c for c in df.columns if re.fullmatch(r'(?:fy)?(20(1[8-9]|2[0-4]))', c)]
-    if not year_cols:
-        year_cols = [c for c in df.columns if re.search(r'20(1[8-9]|2[0-4])', c)]
-    ed_col = next((c for c in df.columns if c in
-                   ["editeur","éditeur","publisher","entreprise","societe","company","studio","nom","compagnie"]), None)
-    if ed_col is None:
-        for c in df.columns:
-            if df[c].dtype == object:
-                ed_col = c; break
-    if ed_col is None:
-        raise ValueError("Colonne éditeur introuvable.")
-    if year_cols:
-        long = df[[ed_col] + year_cols].copy().melt(id_vars=[ed_col], var_name="annee", value_name="valeur")
-        long["annee"] = long["annee"].astype(str).str.extract(r'(20\d{2})').astype(int)
+    
+    def to_long_metric(df_in: pd.DataFrame, metric_keywords) -> pd.DataFrame:
+        df = df_in.rename(columns={c: norm_col(c) for c in df_in.columns})
+        year_cols = [c for c in df.columns if re.fullmatch(r'(?:fy)?(20(1[8-9]|2[0-4]))', c)]
+        if not year_cols:
+            year_cols = [c for c in df.columns if re.search(r'20(1[8-9]|2[0-4])', c)]
+        ed_col = next((c for c in df.columns if c in
+                       ["editeur","éditeur","publisher","entreprise","societe","company","studio","nom","compagnie"]), None)
+        if ed_col is None:
+            for c in df.columns:
+                if df[c].dtype == object:
+                    ed_col = c; break
+        if ed_col is None:
+            raise ValueError("Colonne éditeur introuvable.")
+        if year_cols:
+            long = df[[ed_col] + year_cols].copy().melt(id_vars=[ed_col], var_name="annee", value_name="valeur")
+            long["annee"] = long["annee"].astype(str).str.extract(r'(20\d{2})').astype(int)
+            long["valeur"] = long["valeur"].apply(clean_numeric)
+            long = long.rename(columns={ed_col: "Editeur"})
+            return long
+        an_col = next((c for c in df.columns if c in ["annee","year","date"] or "annee" in c or "year" in c or "date" in c), None)
+        val_col = next((c for c in df.columns if any(k in c for k in metric_keywords)), None)
+        if an_col is None or val_col is None:
+            raise ValueError("Colonnes requises non trouvées.")
+        long = df[[ed_col, an_col, val_col]].copy().rename(columns={ed_col:"Editeur", an_col:"annee", val_col:"valeur"})
+        long["annee"] = pd.to_datetime(long["annee"], errors="coerce").dt.year
         long["valeur"] = long["valeur"].apply(clean_numeric)
-        long = long.rename(columns={ed_col: "Editeur"})
         return long
-    an_col = next((c for c in df.columns if c in ["annee","year","date"] or "annee" in c or "year" in c or "date" in c), None)
-    val_col = next((c for c in df.columns if any(k in c for k in metric_keywords)), None)
-    if an_col is None or val_col is None:
-        raise ValueError("Colonnes requises non trouvées.")
-    long = df[[ed_col, an_col, val_col]].copy().rename(columns={ed_col:"Editeur", an_col:"annee", val_col:"valeur"})
-    long["annee"] = pd.to_datetime(long["annee"], errors="coerce").dt.year
-    long["valeur"] = long["valeur"].apply(clean_numeric)
-    return long
-
-def _to_long_payroll(df_in: pd.DataFrame) -> pd.DataFrame:
-    df = df_in.rename(columns={c: norm_col(c) for c in df_in.columns})
-    year_cols = [c for c in df.columns if re.fullmatch(r'(?:fy)?(20(1[8-9]|2[0-4]))', c)]
-    if not year_cols:
-        year_cols = [c for c in df.columns if re.search(r'20(1[8-9]|2[0-4])', c)]
-    ed_col = next((c for c in df.columns if c in
-                  ["editeur","éditeur","publisher","entreprise","societe","company","studio","nom","compagnie"]), None)
-    if ed_col is None:
-        for c in df.columns:
-            if df[c].dtype == object:
-                ed_col = c; break
-    if ed_col is None:
-        raise ValueError("Colonne éditeur introuvable.")
-    if year_cols:
-        long = df[[ed_col] + year_cols].copy().melt(id_vars=[ed_col], var_name="annee", value_name="valeur")
-        long["annee"] = long["annee"].astype(str).str.extract(r'(20\d{2})').astype(int)
+    
+    def _to_long_payroll(df_in: pd.DataFrame) -> pd.DataFrame:
+        df = df_in.rename(columns={c: norm_col(c) for c in df_in.columns})
+        year_cols = [c for c in df.columns if re.fullmatch(r'(?:fy)?(20(1[8-9]|2[0-4]))', c)]
+        if not year_cols:
+            year_cols = [c for c in df.columns if re.search(r'20(1[8-9]|2[0-4])', c)]
+        ed_col = next((c for c in df.columns if c in
+                      ["editeur","éditeur","publisher","entreprise","societe","company","studio","nom","compagnie"]), None)
+        if ed_col is None:
+            for c in df.columns:
+                if df[c].dtype == object:
+                    ed_col = c; break
+        if ed_col is None:
+            raise ValueError("Colonne éditeur introuvable.")
+        if year_cols:
+            long = df[[ed_col] + year_cols].copy().melt(id_vars=[ed_col], var_name="annee", value_name="valeur")
+            long["annee"] = long["annee"].astype(str).str.extract(r'(20\d{2})').astype(int)
+            long["valeur"] = long["valeur"].apply(clean_numeric)
+            long = long.rename(columns={ed_col:"Editeur"})
+            return long
+        an_col = next((c for c in df.columns if c in ["annee","year","date"] or "annee" in c or "year" in c or "date" in c), None)
+        val_col = next((c for c in df.columns if any(k in c for k in
+                   ["masse salariale","payroll","personnel","staff cost","wages","salaires","salary","coût du personnel","cout du personnel"])), None)
+        if an_col is None or val_col is None:
+            raise ValueError("Colonnes requises non trouvées.")
+        long = df[[ed_col, an_col, val_col]].copy().rename(columns={ed_col:"Editeur", an_col:"annee", val_col:"valeur"})
+        long["annee"] = pd.to_datetime(long["annee"], errors="coerce").dt.year
         long["valeur"] = long["valeur"].apply(clean_numeric)
-        long = long.rename(columns={ed_col:"Editeur"})
         return long
-    an_col = next((c for c in df.columns if c in ["annee","year","date"] or "annee" in c or "year" in c or "date" in c), None)
-    val_col = next((c for c in df.columns if any(k in c for k in
-               ["masse salariale","payroll","personnel","staff cost","wages","salaires","salary","coût du personnel","cout du personnel"])), None)
-    if an_col is None or val_col is None:
-        raise ValueError("Colonnes requises non trouvées.")
-    long = df[[ed_col, an_col, val_col]].copy().rename(columns={ed_col:"Editeur", an_col:"annee", val_col:"valeur"})
-    long["annee"] = pd.to_datetime(long["annee"], errors="coerce").dt.year
-    long["valeur"] = long["valeur"].apply(clean_numeric)
-    return long
-
-# Données préparées
-data_ca = _to_long(df_finance.copy())
-data_ca = data_ca.dropna(subset=["Editeur","annee"])
-data_ca = data_ca[(data_ca["annee"]>=2018) & (data_ca["annee"]<=2024)]
-data_ca["valeur"] = data_ca["valeur"].apply(clean_numeric)
-
-data_profit = to_long_metric(df_finance.copy(),
-                             ["resultat","résultat","net income","profit","benefice","bénéfice"])
-data_profit = data_profit.dropna(subset=["Editeur","annee"])
-data_profit = data_profit[(data_profit["annee"]>=2018) & (data_profit["annee"]<=2024)]
-data_profit["valeur"] = data_profit["valeur"].apply(clean_numeric)
-
-data_payroll = _to_long_payroll(df_finance.copy())
-data_payroll = data_payroll.dropna(subset=["Editeur","annee"])
-data_payroll = data_payroll[(data_payroll["annee"]>=2018) & (data_payroll["annee"]<=2024)]
-data_payroll["valeur"] = data_payroll["valeur"].apply(clean_numeric)
-
-# ────────────────────────────────────────────────
-# ONGLETs
-# ────────────────────────────────────────────────
-tab_ca, tab_profit, tab_payroll = st.tabs([
-    "📈 Chiffre d’affaires", "💹 Résultat net", "👥 Masse salariale"
-])
-
-# ---- Onglet 1 : Chiffre d'affaires (onglet ouvert par défaut)
-with tab_ca:
-    st.subheader("Évolution du chiffre d’affaires (2018–2024)")
-    editeurs_dispos = sorted(data_ca["Editeur"].unique().tolist())
-    col_a, col_b = st.columns([2,1])
-    with col_a:
-        sel_editeurs = st.multiselect("Éditeurs à afficher :", editeurs_dispos,
-                                      default=editeurs_dispos, key="ca_editeurs")
-    with col_b:
-        years_min, years_max = int(data_ca["annee"].min()), int(data_ca["annee"].max())
-        an_range = st.slider("Plage d’années :", min_value=years_min, max_value=years_max,
-                             value=(2018, 2024), step=1, key="ca_years")
-
-    dfp = data_ca[(data_ca["Editeur"].isin(sel_editeurs)) &
-                  (data_ca["annee"].between(an_range[0], an_range[1]))].copy()
-    full_index = pd.MultiIndex.from_product([sorted(set(sel_editeurs)),
-                                             list(range(an_range[0], an_range[1]+1))],
-                                            names=["Editeur", "annee"])
-    dfp = (dfp.groupby(["Editeur", "annee"], as_index=False)["valeur"].sum()
-              .set_index(["Editeur","annee"])
-              .reindex(full_index)
-              .fillna(0.0)
-              .reset_index())
-
-    if dfp.empty:
-        st.warning("Aucune donnée pour la sélection actuelle.")
-    else:
-        annees = sorted(dfp["annee"].unique().tolist())
-        publishers = sel_editeurs
-        n_pub = len(publishers)
-        total_width = 0.8
-        bar_width = total_width / max(n_pub,1)
-        x = list(range(len(annees)))
-        fig, ax = plt.subplots(figsize=(10,6))
-        for i, pub in enumerate(publishers):
-            y_vals = [float(dfp[(dfp["Editeur"]==pub) & (dfp["annee"]==a)]["valeur"].sum()) for a in annees]
-            offsets = [xx + (i - (n_pub-1)/2)*bar_width for xx in x]
-            ax.bar(offsets, y_vals, width=bar_width, label=pub)
-        ax.set_xticks(x); ax.set_xticklabels(annees, rotation=0)
-        ax.set_title("Évolution du chiffre d’affaires (M€) par éditeur", fontsize=14)
-        ax.set_xlabel("Année"); ax.set_ylabel("Chiffre d'affaires (M€)")
-        ax.grid(axis="y", linestyle="--", alpha=0.5)
-        ax.legend(ncol=2, fontsize=9)
-        st.pyplot(fig)
-
-# ---- Onglet 2 : Résultat net
-with tab_profit:
-    st.subheader("Résultat net (M€) — évolution 2018–2024")
-    editeurs_p = sorted(data_profit["Editeur"].unique().tolist())
-    col1, col2 = st.columns([2,1])
-    with col1:
-        sel_ed_p = st.multiselect("Éditeurs à afficher :", editeurs_p,
-                                  default=editeurs_p, key="profit_editeurs")
-    with col2:
-        y_min, y_max = int(data_profit["annee"].min()), int(data_profit["annee"].max())
-        an_range_p = st.slider("Plage d’années :", min_value=y_min, max_value=y_max,
-                               value=(2018, 2024), step=1, key="profit_years")
-
-    dfp_p = data_profit[(data_profit["Editeur"].isin(sel_ed_p)) &
-                        (data_profit["annee"].between(an_range_p[0], an_range_p[1]))].copy()
-    idx_full = pd.MultiIndex.from_product([sorted(set(sel_ed_p)),
-                                           list(range(an_range_p[0], an_range_p[1]+1))],
-                                          names=["Editeur","annee"])
-    dfp_p = (dfp_p.groupby(["Editeur","annee"], as_index=False)["valeur"].sum()
-                .set_index(["Editeur","annee"])
-                .reindex(idx_full)
-                .fillna(0.0)
-                .reset_index())
-
-    if dfp_p.empty:
-        st.warning("Aucune donnée pour la sélection actuelle.")
-    else:
-        annees_p = sorted(dfp_p["annee"].unique().tolist())
-        pubs_p = sel_ed_p; n_pub_p = len(pubs_p)
-        total_w = 0.8; bw = total_w / max(n_pub_p,1); x = list(range(len(annees_p)))
-        figp, axp = plt.subplots(figsize=(10,6))
-        for i, pub in enumerate(pubs_p):
-            yv = [float(dfp_p[(dfp_p["Editeur"]==pub) & (dfp_p["annee"]==a)]["valeur"].sum()) for a in annees_p]
-            offs = [xx + (i - (n_pub_p-1)/2)*bw for xx in x]
-            axp.bar(offs, yv, width=bw, label=pub)
-        axp.axhline(0, color="black", linewidth=1)
-        axp.set_xticks(x); axp.set_xticklabels(annees_p, rotation=0)
-        axp.set_title("Résultat net (M€) par éditeur", fontsize=14)
-        axp.set_xlabel("Année"); axp.set_ylabel("Résultat net (M€)")
-        axp.grid(axis="y", linestyle="--", alpha=0.5)
-        axp.legend(ncol=2, fontsize=9)
-        st.pyplot(figp)
-
-# ---- Onglet 3 : Masse salariale
-with tab_payroll:
-    st.subheader("Masse salariale (M€) — évolution 2018–2024")
-    editeurs_pay = sorted(data_payroll["Editeur"].unique().tolist())
-    c1, c2 = st.columns([2,1])
-    with c1:
-        sel_editeurs_pay = st.multiselect("Éditeurs à afficher :", editeurs_pay,
-                                          default=editeurs_pay, key="pay_editeurs")
-    with c2:
-        y_min_p, y_max_p = int(data_payroll["annee"].min()), int(data_payroll["annee"].max())
-        an_range_pay = st.slider("Plage d’années :", min_value=y_min_p, max_value=y_max_p,
-                                 value=(2018, 2024), step=1, key="pay_years")
-
-    dfp_pay = data_payroll[(data_payroll["Editeur"].isin(sel_editeurs_pay)) &
-                           (data_payroll["annee"].between(an_range_pay[0], an_range_pay[1]))].copy()
-    full_idx_pay = pd.MultiIndex.from_product([sorted(set(sel_editeurs_pay)),
-                                               list(range(an_range_pay[0], an_range_pay[1]+1))],
+    
+    # Données préparées
+    data_ca = _to_long(df_finance.copy())
+    data_ca = data_ca.dropna(subset=["Editeur","annee"])
+    data_ca = data_ca[(data_ca["annee"]>=2018) & (data_ca["annee"]<=2024)]
+    data_ca["valeur"] = data_ca["valeur"].apply(clean_numeric)
+    
+    data_profit = to_long_metric(df_finance.copy(),
+                                 ["resultat","résultat","net income","profit","benefice","bénéfice"])
+    data_profit = data_profit.dropna(subset=["Editeur","annee"])
+    data_profit = data_profit[(data_profit["annee"]>=2018) & (data_profit["annee"]<=2024)]
+    data_profit["valeur"] = data_profit["valeur"].apply(clean_numeric)
+    
+    data_payroll = _to_long_payroll(df_finance.copy())
+    data_payroll = data_payroll.dropna(subset=["Editeur","annee"])
+    data_payroll = data_payroll[(data_payroll["annee"]>=2018) & (data_payroll["annee"]<=2024)]
+    data_payroll["valeur"] = data_payroll["valeur"].apply(clean_numeric)
+    
+    # ────────────────────────────────────────────────
+    # ONGLETs
+    # ────────────────────────────────────────────────
+    tab_ca, tab_profit, tab_payroll = st.tabs([
+        "📈 Chiffre d’affaires", "💹 Résultat net", "👥 Masse salariale"
+    ])
+    
+    # ---- Onglet 1 : Chiffre d'affaires (onglet ouvert par défaut)
+    with tab_ca:
+        st.subheader("Évolution du chiffre d’affaires (2018–2024)")
+        editeurs_dispos = sorted(data_ca["Editeur"].unique().tolist())
+        col_a, col_b = st.columns([2,1])
+        with col_a:
+            sel_editeurs = st.multiselect("Éditeurs à afficher :", editeurs_dispos,
+                                          default=editeurs_dispos, key="ca_editeurs")
+        with col_b:
+            years_min, years_max = int(data_ca["annee"].min()), int(data_ca["annee"].max())
+            an_range = st.slider("Plage d’années :", min_value=years_min, max_value=years_max,
+                                 value=(2018, 2024), step=1, key="ca_years")
+    
+        dfp = data_ca[(data_ca["Editeur"].isin(sel_editeurs)) &
+                      (data_ca["annee"].between(an_range[0], an_range[1]))].copy()
+        full_index = pd.MultiIndex.from_product([sorted(set(sel_editeurs)),
+                                                 list(range(an_range[0], an_range[1]+1))],
+                                                names=["Editeur", "annee"])
+        dfp = (dfp.groupby(["Editeur", "annee"], as_index=False)["valeur"].sum()
+                  .set_index(["Editeur","annee"])
+                  .reindex(full_index)
+                  .fillna(0.0)
+                  .reset_index())
+    
+        if dfp.empty:
+            st.warning("Aucune donnée pour la sélection actuelle.")
+        else:
+            annees = sorted(dfp["annee"].unique().tolist())
+            publishers = sel_editeurs
+            n_pub = len(publishers)
+            total_width = 0.8
+            bar_width = total_width / max(n_pub,1)
+            x = list(range(len(annees)))
+            fig, ax = plt.subplots(figsize=(10,6))
+            for i, pub in enumerate(publishers):
+                y_vals = [float(dfp[(dfp["Editeur"]==pub) & (dfp["annee"]==a)]["valeur"].sum()) for a in annees]
+                offsets = [xx + (i - (n_pub-1)/2)*bar_width for xx in x]
+                ax.bar(offsets, y_vals, width=bar_width, label=pub)
+            ax.set_xticks(x); ax.set_xticklabels(annees, rotation=0)
+            ax.set_title("Évolution du chiffre d’affaires (M€) par éditeur", fontsize=14)
+            ax.set_xlabel("Année"); ax.set_ylabel("Chiffre d'affaires (M€)")
+            ax.grid(axis="y", linestyle="--", alpha=0.5)
+            ax.legend(ncol=2, fontsize=9)
+            st.pyplot(fig)
+    
+    # ---- Onglet 2 : Résultat net
+    with tab_profit:
+        st.subheader("Résultat net (M€) — évolution 2018–2024")
+        editeurs_p = sorted(data_profit["Editeur"].unique().tolist())
+        col1, col2 = st.columns([2,1])
+        with col1:
+            sel_ed_p = st.multiselect("Éditeurs à afficher :", editeurs_p,
+                                      default=editeurs_p, key="profit_editeurs")
+        with col2:
+            y_min, y_max = int(data_profit["annee"].min()), int(data_profit["annee"].max())
+            an_range_p = st.slider("Plage d’années :", min_value=y_min, max_value=y_max,
+                                   value=(2018, 2024), step=1, key="profit_years")
+    
+        dfp_p = data_profit[(data_profit["Editeur"].isin(sel_ed_p)) &
+                            (data_profit["annee"].between(an_range_p[0], an_range_p[1]))].copy()
+        idx_full = pd.MultiIndex.from_product([sorted(set(sel_ed_p)),
+                                               list(range(an_range_p[0], an_range_p[1]+1))],
                                               names=["Editeur","annee"])
-    dfp_pay = (dfp_pay.groupby(["Editeur","annee"], as_index=False)["valeur"].sum()
+        dfp_p = (dfp_p.groupby(["Editeur","annee"], as_index=False)["valeur"].sum()
                     .set_index(["Editeur","annee"])
-                    .reindex(full_idx_pay)
+                    .reindex(idx_full)
                     .fillna(0.0)
                     .reset_index())
-
-    if dfp_pay.empty:
-        st.warning("Aucune donnée pour la sélection actuelle (masse salariale).")
-    else:
-        annees_pay = sorted(dfp_pay["annee"].unique().tolist())
-        pubs_pay = sel_editeurs_pay
-        n_pub_pay = len(pubs_pay)
-        total_w = 0.8; bw = total_w / max(n_pub_pay,1); x = list(range(len(annees_pay)))
-        figp2, axp2 = plt.subplots(figsize=(10,6))
-        for i, pub in enumerate(pubs_pay):
-            y_vals = [float(dfp_pay[(dfp_pay["Editeur"]==pub) & (dfp_pay["annee"]==a)]["valeur"].sum()) for a in annees_pay]
-            offs = [xx + (i - (n_pub_pay-1)/2)*bw for xx in x]
-            axp2.bar(offs, y_vals, width=bw, label=pub)
-        axp2.set_xticks(x); axp2.set_xticklabels(annees_pay, rotation=0)
-        axp2.set_title("Évolution de la masse salariale (M€) par éditeur", fontsize=14)
-        axp2.set_xlabel("Année"); axp2.set_ylabel("Masse salariale (M€)")
-        axp2.grid(axis="y", linestyle="--", alpha=0.5)
-        axp2.legend(ncol=2, fontsize=9)
-        st.pyplot(figp2)
+    
+        if dfp_p.empty:
+            st.warning("Aucune donnée pour la sélection actuelle.")
+        else:
+            annees_p = sorted(dfp_p["annee"].unique().tolist())
+            pubs_p = sel_ed_p; n_pub_p = len(pubs_p)
+            total_w = 0.8; bw = total_w / max(n_pub_p,1); x = list(range(len(annees_p)))
+            figp, axp = plt.subplots(figsize=(10,6))
+            for i, pub in enumerate(pubs_p):
+                yv = [float(dfp_p[(dfp_p["Editeur"]==pub) & (dfp_p["annee"]==a)]["valeur"].sum()) for a in annees_p]
+                offs = [xx + (i - (n_pub_p-1)/2)*bw for xx in x]
+                axp.bar(offs, yv, width=bw, label=pub)
+            axp.axhline(0, color="black", linewidth=1)
+            axp.set_xticks(x); axp.set_xticklabels(annees_p, rotation=0)
+            axp.set_title("Résultat net (M€) par éditeur", fontsize=14)
+            axp.set_xlabel("Année"); axp.set_ylabel("Résultat net (M€)")
+            axp.grid(axis="y", linestyle="--", alpha=0.5)
+            axp.legend(ncol=2, fontsize=9)
+            st.pyplot(figp)
+    
+    # ---- Onglet 3 : Masse salariale
+    with tab_payroll:
+        st.subheader("Masse salariale (M€) — évolution 2018–2024")
+        editeurs_pay = sorted(data_payroll["Editeur"].unique().tolist())
+        c1, c2 = st.columns([2,1])
+        with c1:
+            sel_editeurs_pay = st.multiselect("Éditeurs à afficher :", editeurs_pay,
+                                              default=editeurs_pay, key="pay_editeurs")
+        with c2:
+            y_min_p, y_max_p = int(data_payroll["annee"].min()), int(data_payroll["annee"].max())
+            an_range_pay = st.slider("Plage d’années :", min_value=y_min_p, max_value=y_max_p,
+                                     value=(2018, 2024), step=1, key="pay_years")
+    
+        dfp_pay = data_payroll[(data_payroll["Editeur"].isin(sel_editeurs_pay)) &
+                               (data_payroll["annee"].between(an_range_pay[0], an_range_pay[1]))].copy()
+        full_idx_pay = pd.MultiIndex.from_product([sorted(set(sel_editeurs_pay)),
+                                                   list(range(an_range_pay[0], an_range_pay[1]+1))],
+                                                  names=["Editeur","annee"])
+        dfp_pay = (dfp_pay.groupby(["Editeur","annee"], as_index=False)["valeur"].sum()
+                        .set_index(["Editeur","annee"])
+                        .reindex(full_idx_pay)
+                        .fillna(0.0)
+                        .reset_index())
+    
+        if dfp_pay.empty:
+            st.warning("Aucune donnée pour la sélection actuelle (masse salariale).")
+        else:
+            annees_pay = sorted(dfp_pay["annee"].unique().tolist())
+            pubs_pay = sel_editeurs_pay
+            n_pub_pay = len(pubs_pay)
+            total_w = 0.8; bw = total_w / max(n_pub_pay,1); x = list(range(len(annees_pay)))
+            figp2, axp2 = plt.subplots(figsize=(10,6))
+            for i, pub in enumerate(pubs_pay):
+                y_vals = [float(dfp_pay[(dfp_pay["Editeur"]==pub) & (dfp_pay["annee"]==a)]["valeur"].sum()) for a in annees_pay]
+                offs = [xx + (i - (n_pub_pay-1)/2)*bw for xx in x]
+                axp2.bar(offs, y_vals, width=bw, label=pub)
+            axp2.set_xticks(x); axp2.set_xticklabels(annees_pay, rotation=0)
+            axp2.set_title("Évolution de la masse salariale (M€) par éditeur", fontsize=14)
+            axp2.set_xlabel("Année"); axp2.set_ylabel("Masse salariale (M€)")
+            axp2.grid(axis="y", linestyle="--", alpha=0.5)
+            axp2.legend(ncol=2, fontsize=9)
+            st.pyplot(figp2)
 
 
     # Bulles : CA↔Résultat (taille = masse salariale) + Masse salariale ↔ Effectif
@@ -1922,6 +1922,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
