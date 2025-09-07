@@ -536,7 +536,7 @@ with tab_ca:
     """)
 
     # ---- Votre code CA (préparation inchangée) ----
-    def _to_long(df_in: pd.DataFrame) -> pd.DataFrame]:
+    def _to_long(df_in: pd.DataFrame) -> pd.DataFrame:
         df = df_in.rename(columns={c: unicodedata.normalize("NFKD", str(c)).encode("ascii","ignore").decode().strip().lower()
                                    for c in df_in.columns})
         year_cols = [c for c in df.columns if re.fullmatch(r'(?:fy)?(20(1[8-9]|2[0-4]))', c)]
@@ -1980,6 +1980,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
