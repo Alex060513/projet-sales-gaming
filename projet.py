@@ -6,6 +6,8 @@ from pathlib import Path
 import unicodedata
 import numpy as np
 import re
+import plotly.express as px
+
 
 # ────────────────────────────────────────────────
 # APP STREAMLIT : DOSSIER UBISOFT
@@ -1855,6 +1857,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
