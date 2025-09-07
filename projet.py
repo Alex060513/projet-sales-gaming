@@ -696,106 +696,130 @@ elif page == "Analyse financière comparative":
         **Ubisoft** emploie un volume de salariés **comparable** à celui d’**Activision Blizzard**, mais ses **performances financières** sont nettement **inférieures**.  
         Par exemple, **Electronic Arts** opère avec **environ un tiers de personnel en moins**, tout en générant un **chiffre d’affaires** et un **résultat net** largement supérieurs.
         """)
-    # Bulles : CA↔Résultat (taille = masse salariale) + Masse salariale ↔ Effectif
-    st.divider()
-    st.subheader(" Résultat net vs Chiffre d’affaires ")
-    st.caption("Les deux graphiques ci-dessous utilisent les mêmes données centralisées.")
+        
+# ─────────────────────────────────────────────────────────────
+# Bulles (Plotly) — 2 onglets : Profit vs CA  |  Masse salariale vs Effectif
+# ─────────────────────────────────────────────────────────────
+st.divider()
+tabs = st.tabs(["💶 Résultat net vs Chiffre d’affaires", "👥 Masse salariale vs Effectif total"])
 
-    def _normalize_columns_for_panel(df_in: pd.DataFrame) -> pd.DataFrame:
-        df = df_in.rename(columns={c: norm_col(c) for c in df_in.columns})
-        ed_col = next((c for c in df.columns if c in
-                       ["editeur","éditeur","publisher","entreprise","societe","company","studio","nom","compagnie"]), None)
-        if ed_col is None:
-            for c in df.columns:
-                if df[c].dtype == object:
-                    ed_col = c; break
-        if ed_col is None:
-            raise ValueError("Colonne éditeur introuvable.")
-        KEYWORDS = {
-            "ca": ["chiffre","sales","revenue","revenu","ca"],
-            "profit": ["resultat","résultat","net income","profit","benefice","bénéfice"],
-            "payroll": ["masse salariale","payroll","personnel","staff cost","wages","salaires","salary","coût du personnel","cout du personnel"],
-            "headcount": ["effectif","headcount","employe","employee","staff"]
-        }
-        def find_col(dfcols, words):
-            return next((c for c in dfcols if any(w in c for w in words)), None)
+def _normalize_columns_for_panel(df_in: pd.DataFrame) -> pd.DataFrame:
+    df = df_in.rename(columns={c: norm_col(c) for c in df_in.columns})
+    ed_col = next((c for c in df.columns if c in
+                   ["editeur","éditeur","publisher","entreprise","societe","company","studio","nom","compagnie"]), None)
+    if ed_col is None:
+        for c in df.columns:
+            if df[c].dtype == object:
+                ed_col = c; break
+    if ed_col is None:
+        raise ValueError("Colonne éditeur introuvable.")
 
-        an_col = next((c for c in df.columns if c in ["annee","year","date"] or "annee" in c or "year" in c or "date" in c), None)
-        ca_col      = find_col(df.columns, KEYWORDS["ca"])
-        profit_col  = find_col(df.columns, KEYWORDS["profit"])
-        payroll_col = find_col(df.columns, KEYWORDS["payroll"])
-        headc_col   = find_col(df.columns, KEYWORDS["headcount"])
+    def find_col(dfcols, words):
+        return next((c for c in dfcols if any(w in c for w in words)), None)
 
-        panel = pd.DataFrame({"Editeur": df[ed_col]})
-        if an_col is not None:
-            panel["annee"] = pd.to_datetime(df[an_col], errors="coerce").dt.year
-        else:
-            panel["annee"] = np.nan
+    an_col      = next((c for c in df.columns if c in ["annee","year","date"] or "annee" in c or "year" in c or "date" in c), None)
+    ca_col      = find_col(df.columns, ["chiffre","sales","revenue","revenu","ca"])
+    profit_col  = find_col(df.columns, ["resultat","résultat","net income","profit","benefice","bénéfice"])
+    payroll_col = find_col(df.columns, ["masse salariale","payroll","personnel","staff cost","wages","salaires","salary","coût du personnel","cout du personnel"])
+    headc_col   = find_col(df.columns, ["effectif","headcount","employe","employee","staff"])
 
-        if ca_col:      panel["ca"]       = df[ca_col].apply(clean_numeric)
-        if profit_col:  panel["profit"]   = df[profit_col].apply(clean_numeric)
-        if payroll_col: panel["payroll"]  = df[payroll_col].apply(clean_numeric)
-        if headc_col:   panel["headcount"]= df[headc_col].apply(clean_numeric)
-        for col in ["ca","profit","payroll","headcount"]:
-            if col not in panel.columns:
-                panel[col] = 0.0
-        return panel
+    panel = pd.DataFrame({"Editeur": df[ed_col]})
+    panel["annee"] = pd.to_datetime(df[an_col], errors="coerce").dt.year if an_col is not None else np.nan
+    panel["ca"]        = df[ca_col].apply(clean_numeric)       if ca_col      else 0.0
+    panel["profit"]    = df[profit_col].apply(clean_numeric)   if profit_col  else 0.0
+    panel["payroll"]   = df[payroll_col].apply(clean_numeric)  if payroll_col else 0.0
+    panel["headcount"] = df[headc_col].apply(clean_numeric)    if headc_col   else 0.0
+    return panel
 
-    panel = _normalize_columns_for_panel(df_finance.copy())
-    panel = panel.dropna(subset=["Editeur"])
-    if panel["annee"].notna().any():
-        panel = panel[(panel["annee"].between(2018, 2024, inclusive="both")) | panel["annee"].isna()].copy()
-    for c in ["ca","profit","payroll","headcount"]:
-        panel[c] = panel[c].apply(clean_numeric)
+panel = _normalize_columns_for_panel(df_finance.copy())
+panel = panel.dropna(subset=["Editeur"])
+if panel["annee"].notna().any():
+    panel = panel[(panel["annee"].between(2018, 2024, inclusive="both")) | panel["annee"].isna()].copy()
 
-    colsA, colsB, colsC = st.columns([2,1,1])
-    with colsA:
-        editeurs_sel = st.multiselect("Éditeurs :", sorted(panel["Editeur"].unique()),
-                                      default=sorted(panel["Editeur"].unique()))
-    with colsB:
+# Sélecteurs communs (répliqués par onglet pour plus de clarté)
+def _selectors(prefix: str):
+    colA, colB, colC = st.columns([2,1,1])
+    with colA:
+        editeurs_sel = st.multiselect(
+            "Éditeurs :", sorted(panel["Editeur"].unique()),
+            default=sorted(panel["Editeur"].unique()), key=f"{prefix}_eds"
+        )
+    with colB:
         if panel["annee"].notna().any():
-            y_min2, y_max2 = int(panel["annee"].min()), int(panel["annee"].max())
-            an_range2 = st.slider("Années :", min_value=y_min2, max_value=y_max2, value=(max(2018,y_min2), min(2024,y_max2)), step=1)
+            ymin, ymax = int(panel["annee"].min()), int(panel["annee"].max())
+            years = st.slider("Années :", min_value=ymin, max_value=ymax,
+                              value=(max(2018, ymin), min(2024, ymax)), step=1, key=f"{prefix}_years")
         else:
-            an_range2 = (2018, 2024)
-    with colsC:
-        size_scale = st.slider("Échelle des bulles (masse salariale)", 0.1, 2.0, 0.7, 0.1)
-        alpha_pts  = st.slider("Transparence", 0.2, 1.0, 0.8, 0.1)
+            years = (2018, 2024)
+    with colC:
+        size_scale = st.slider("Échelle des bulles (masse salariale)", 0.3, 1.5, 0.7, 0.1, key=f"{prefix}_size")
+    return editeurs_sel, years, size_scale
+
+# ========== Onglet 1 : Résultat net vs Chiffre d’affaires ==========
+with tabs[0]:
+    st.caption("Les deux axes sont en M€ ; la **taille** des bulles est proportionnelle à la **masse salariale**.")
+    eds, years, size_scale = _selectors("pvsca")
 
     if panel["annee"].notna().any():
-        dfp_panel = panel[(panel["Editeur"].isin(editeurs_sel)) &
-                          (panel["annee"].between(an_range2[0], an_range2[1]))].copy()
+        dfp = panel[(panel["Editeur"].isin(eds)) & (panel["annee"].between(years[0], years[1]))].copy()
     else:
-        dfp_panel = panel[panel["Editeur"].isin(editeurs_sel)].copy()
+        dfp = panel[panel["Editeur"].isin(eds)].copy()
 
-    if dfp_panel.empty:
+    if dfp.empty:
         st.warning("Aucune donnée pour la sélection actuelle.")
     else:
-        fig_b, ax_b = plt.subplots(figsize=(9.5, 6.5))
-        for ed in sorted(dfp_panel["Editeur"].unique()):
-            d = dfp_panel[dfp_panel["Editeur"] == ed]
-            ax_b.scatter(d["ca"], d["profit"], s=np.sqrt(d["payroll"].clip(lower=0))*(10*size_scale),
-                         alpha=alpha_pts, label=ed)
-        ax_b.set_title("Résultat net (M€) en fonction du chiffre d’affaires (M€) — taille = masse salariale", fontsize=13)
-        ax_b.set_xlabel("Chiffre d’affaires (M€)")
-        ax_b.set_ylabel("Résultat net (M€)")
-        ax_b.grid(True, linestyle="--", alpha=0.4)
-        ax_b.legend(ncol=2, fontsize=9, frameon=True)
-        st.pyplot(fig_b)
+        # Échelle de taille douce via racine carrée (évite les bulles démesurées)
+        dfp["taille_bulle"] = np.sqrt(dfp["payroll"].clip(lower=0)) * (12 * size_scale)
 
-        st.subheader(" Masse salariale vs Effectif total (2018–2024)")
-        fig_c, ax_c = plt.subplots(figsize=(9.5, 6.0))
-        for ed in sorted(dfp_panel["Editeur"].unique()):
-            d = dfp_panel[dfp_panel["Editeur"] == ed]
-            ax_c.scatter(d["headcount"], d["payroll"], alpha=alpha_pts, label=ed)
-        ax_c.set_title("Coût de la masse salariale (M€) en fonction de l’effectif total", fontsize=13)
-        ax_c.set_xlabel("Effectif total (personnes)")
-        ax_c.set_ylabel("Masse salariale (M€)")
-        ax_c.grid(True, linestyle="--", alpha=0.4)
-        ax_c.legend(ncol=2, fontsize=9, frameon=True)
-        st.pyplot(fig_c)
+        fig = px.scatter(
+            dfp, x="ca", y="profit", color="Editeur", size="taille_bulle",
+            hover_data={"ca":":,.0f", "profit":":,.0f", "payroll":":,.0f", "taille_bulle":False, "Editeur":True},
+            labels={"ca":"Chiffre d’affaires (M€)", "profit":"Résultat net (M€)", "Editeur":""},
+            title="Résultat net (M€) en fonction du chiffre d’affaires (M€) — taille = masse salariale"
+        )
+        fig.update_traces(marker=dict(line=dict(width=0.5, color="#333")))
+        fig.update_layout(
+            height=420, margin=dict(l=50, r=30, t=60, b=50),
+            legend_title_text="",
+            plot_bgcolor="white", paper_bgcolor="white"
+        )
+        fig.update_xaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
+        fig.update_yaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
+        fig.update_traces(hovertemplate="<b>%{customdata[3]}</b><br>CA: %{x:,.0f} M€<br>Résultat: %{y:,.0f} M€<br>Masse salariale: %{customdata[2]:,.0f} M€<extra></extra>".replace(",", " "))
+        st.plotly_chart(fig, use_container_width=True)
 
-  
+# ========== Onglet 2 : Masse salariale vs Effectif total ==========
+with tabs[1]:
+    eds2, years2, size_scale2 = _selectors("pay_vs_head")
+
+    if panel["annee"].notna().any():
+        dfp2 = panel[(panel["Editeur"].isin(eds2)) & (panel["annee"].between(years2[0], years2[1]))].copy()
+    else:
+        dfp2 = panel[panel["Editeur"].isin(eds2)].copy()
+
+    if dfp2.empty:
+        st.warning("Aucune donnée pour la sélection actuelle.")
+    else:
+        # Taille liée aussi à la masse salariale (optionnel mais cohérent visuellement)
+        dfp2["taille_bulle"] = np.sqrt(dfp2["payroll"].clip(lower=0)) * (12 * size_scale2)
+
+        fig2 = px.scatter(
+            dfp2, x="headcount", y="payroll", color="Editeur", size="taille_bulle",
+            hover_data={"headcount":":,.0f", "payroll":":,.0f", "taille_bulle":False, "Editeur":True},
+            labels={"headcount":"Effectif total (personnes)", "payroll":"Masse salariale (M€)", "Editeur":""},
+            title="Coût de la masse salariale (M€) en fonction de l’effectif total"
+        )
+        fig2.update_traces(marker=dict(line=dict(width=0.5, color="#333")))
+        fig2.update_layout(
+            height=420, margin=dict(l=50, r=30, t=60, b=50),
+            legend_title_text="",
+            plot_bgcolor="white", paper_bgcolor="white"
+        )
+        fig2.update_xaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
+        fig2.update_yaxes(showline=True, linecolor="#000", gridcolor="rgba(0,0,0,.15)")
+        fig2.update_traces(hovertemplate="<b>%{customdata[3]}</b><br>Effectif: %{x:,.0f}<br>Masse salariale: %{y:,.0f} M€<extra></extra>".replace(",", " "))
+        st.plotly_chart(fig2, use_container_width=True)
+
     
 # ────────────────────────────────────────────────
 # PAGE 3 : ANALYSE DES PERFORMANCES DES JEUX UBISOFT
@@ -1979,6 +2003,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
