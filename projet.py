@@ -494,208 +494,208 @@ elif page == "Analyse financière comparative":
     
     # ────────────────────────────────────────────────
     # --- Onglets
-# --- Onglets
-st.subheader("Évolution du chiffre d’affaires, du résultat net et de la masse salariale sur la période 2018–2024")
-tab_ca, tab_profit, tab_payroll = st.tabs(
-    ["📈 Chiffre d’affaires", "💶 Résultat net", "👥 Masse salariale"]
-)
-
-# ----- Common plot style helpers -----
-FIG_W, FIG_H = 8, 4.6
-TITLE_FS = 13
-LABEL_FS = 11
-TICK_FS  = 9
-LEGEND_FS = 9
-
-def _legend_below(ax, n_items: int):
-    """Place the legend below the axes with a sensible number of columns."""
-    ncol = min(max(n_items, 1), 4)  # 1..4 columns
-    leg = ax.legend(
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.18),   # below the plot
-        ncol=ncol,
-        fontsize=LEGEND_FS,
-        frameon=True
+    # --- Onglets
+    st.subheader("Évolution du chiffre d’affaires, du résultat net et de la masse salariale sur la période 2018–2024")
+    tab_ca, tab_profit, tab_payroll = st.tabs(
+        ["📈 Chiffre d’affaires", "💶 Résultat net", "👥 Masse salariale"]
     )
-    return leg
-
-def _finish_axes(ax, title: str, y_label: str):
-    ax.set_title(title, fontsize=TITLE_FS)
-    ax.set_xlabel("Année", fontsize=LABEL_FS)
-    ax.set_ylabel(y_label, fontsize=LABEL_FS)
-    ax.grid(axis="y", linestyle="--", alpha=0.45)
-    ax.tick_params(axis='both', labelsize=TICK_FS)
-
-# ============ TAB 1 — Chiffre d’affaires ============
-with tab_ca:
-    st.markdown("""
-    Plus préoccupant encore, **le chiffre d’affaires d’Ubisoft n’évolue quasiment pas**, 
-    alors que la majorité des **concurrents** (*Sony Interactive Entertainment, Electronic Arts, Bandai Namco*, etc.*)
-    affichent **une croissance continue**.  
-    Cette **stagnation** est un **signal d’alerte fort**, d’autant plus que le **marché global du jeu vidéo** est, lui, **en croissance**.
-    """)
-
-    # ---- Votre code CA (préparation inchangée) ----
-    def _to_long(df_in: pd.DataFrame) -> pd.DataFrame:
-        df = df_in.rename(columns={c: unicodedata.normalize("NFKD", str(c)).encode("ascii","ignore").decode().strip().lower()
-                                   for c in df_in.columns})
-        year_cols = [c for c in df.columns if re.fullmatch(r'(?:fy)?(20(1[8-9]|2[0-4]))', c)]
-        if not year_cols:
-            year_cols = [c for c in df.columns if re.search(r'20(1[8-9]|2[0-4])', c)]
-        ed_col = next((c for c in df.columns if c in
-                       ["editeur","publisher","entreprise","societe","company","studio","nom","compagnie"]), None)
-        if ed_col is None:
-            for c in df.columns:
-                if df[c].dtype == object:
-                    ed_col = c; break
-        if ed_col is None:
-            raise ValueError("Colonne éditeur introuvable.")
-
-        if year_cols:
-            long = df[[ed_col] + year_cols].copy().melt(id_vars=[ed_col], var_name="annee", value_name="valeur")
-            long["annee"] = long["annee"].astype(str).str.extract(r'(20\d{2})').astype(int)
+    
+    # ----- Common plot style helpers -----
+    FIG_W, FIG_H = 8, 4.6
+    TITLE_FS = 13
+    LABEL_FS = 11
+    TICK_FS  = 9
+    LEGEND_FS = 9
+    
+    def _legend_below(ax, n_items: int):
+        """Place the legend below the axes with a sensible number of columns."""
+        ncol = min(max(n_items, 1), 4)  # 1..4 columns
+        leg = ax.legend(
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.18),   # below the plot
+            ncol=ncol,
+            fontsize=LEGEND_FS,
+            frameon=True
+        )
+        return leg
+    
+    def _finish_axes(ax, title: str, y_label: str):
+        ax.set_title(title, fontsize=TITLE_FS)
+        ax.set_xlabel("Année", fontsize=LABEL_FS)
+        ax.set_ylabel(y_label, fontsize=LABEL_FS)
+        ax.grid(axis="y", linestyle="--", alpha=0.45)
+        ax.tick_params(axis='both', labelsize=TICK_FS)
+    
+    # ============ TAB 1 — Chiffre d’affaires ============
+    with tab_ca:
+        st.markdown("""
+        Plus préoccupant encore, **le chiffre d’affaires d’Ubisoft n’évolue quasiment pas**, 
+        alors que la majorité des **concurrents** (*Sony Interactive Entertainment, Electronic Arts, Bandai Namco*, etc.*)
+        affichent **une croissance continue**.  
+        Cette **stagnation** est un **signal d’alerte fort**, d’autant plus que le **marché global du jeu vidéo** est, lui, **en croissance**.
+        """)
+    
+        # ---- Votre code CA (préparation inchangée) ----
+        def _to_long(df_in: pd.DataFrame) -> pd.DataFrame:
+            df = df_in.rename(columns={c: unicodedata.normalize("NFKD", str(c)).encode("ascii","ignore").decode().strip().lower()
+                                       for c in df_in.columns})
+            year_cols = [c for c in df.columns if re.fullmatch(r'(?:fy)?(20(1[8-9]|2[0-4]))', c)]
+            if not year_cols:
+                year_cols = [c for c in df.columns if re.search(r'20(1[8-9]|2[0-4])', c)]
+            ed_col = next((c for c in df.columns if c in
+                           ["editeur","publisher","entreprise","societe","company","studio","nom","compagnie"]), None)
+            if ed_col is None:
+                for c in df.columns:
+                    if df[c].dtype == object:
+                        ed_col = c; break
+            if ed_col is None:
+                raise ValueError("Colonne éditeur introuvable.")
+    
+            if year_cols:
+                long = df[[ed_col] + year_cols].copy().melt(id_vars=[ed_col], var_name="annee", value_name="valeur")
+                long["annee"] = long["annee"].astype(str).str.extract(r'(20\d{2})').astype(int)
+                long["valeur"] = long["valeur"].apply(clean_numeric)
+                long = long.rename(columns={ed_col:"Editeur"})
+                return long
+    
+            an_col = next((c for c in df.columns if c in ["annee","year","date"] or "annee" in c or "year" in c or "date" in c), None)
+            val_col = next((c for c in df.columns if any(k in c for k in ["chiffre","revenue","revenu","sales","ca"])), None)
+            if an_col is None or val_col is None:
+                raise ValueError("Colonnes requises non trouvées (Année + CA).")
+            long = df[[ed_col, an_col, val_col]].copy().rename(columns={ed_col:"Editeur", an_col:"annee", val_col:"valeur"})
+            long["annee"] = pd.to_datetime(long["annee"], errors="coerce").dt.year
             long["valeur"] = long["valeur"].apply(clean_numeric)
-            long = long.rename(columns={ed_col:"Editeur"})
             return long
-
-        an_col = next((c for c in df.columns if c in ["annee","year","date"] or "annee" in c or "year" in c or "date" in c), None)
-        val_col = next((c for c in df.columns if any(k in c for k in ["chiffre","revenue","revenu","sales","ca"])), None)
-        if an_col is None or val_col is None:
-            raise ValueError("Colonnes requises non trouvées (Année + CA).")
-        long = df[[ed_col, an_col, val_col]].copy().rename(columns={ed_col:"Editeur", an_col:"annee", val_col:"valeur"})
-        long["annee"] = pd.to_datetime(long["annee"], errors="coerce").dt.year
-        long["valeur"] = long["valeur"].apply(clean_numeric)
-        return long
-
-    df_multi_raw = df_finance.copy()
-    data_long = _to_long(df_multi_raw)
-    data_long = data_long.dropna(subset=["Editeur","annee"])
-    data_long = data_long[(data_long["annee"]>=2018) & (data_long["annee"]<=2024)]
-    data_long["valeur"] = data_long["valeur"].apply(clean_numeric)
-
-    editeurs_dispos = sorted(data_long["Editeur"].unique().tolist())
-    col_a, col_b = st.columns([2,1])
-    with col_a:
-        sel_editeurs = st.multiselect("Éditeurs à afficher :", editeurs_dispos, default=editeurs_dispos, key="ca_ed")
-    with col_b:
-        years_min, years_max = int(data_long["annee"].min()), int(data_long["annee"].max())
-        an_range = st.slider("Plage d’années :", min_value=years_min, max_value=years_max, value=(2018, 2024), step=1, key="ca_year")
-
-    dfp = data_long[(data_long["Editeur"].isin(sel_editeurs)) &
-                    (data_long["annee"].between(an_range[0], an_range[1]))].copy()
-    full_index = pd.MultiIndex.from_product([sorted(set(sel_editeurs)), list(range(an_range[0], an_range[1]+1))],
-                                            names=["Editeur", "annee"])
-    dfp = (dfp.groupby(["Editeur", "annee"], as_index=False)["valeur"].sum()
-              .set_index(["Editeur","annee"])
-              .reindex(full_index)
-              .fillna(0.0)
-              .reset_index())
-
-    if dfp.empty:
-        st.warning("Aucune donnée pour la sélection actuelle.")
-    else:
-        annees = sorted(dfp["annee"].unique().tolist())
-        publishers = sel_editeurs
-        n_pub = len(publishers)
-        total_width = 0.8
-        bar_width = total_width / max(n_pub,1)
-        x = list(range(len(annees)))
-        fig, ax = plt.subplots(figsize=(FIG_W, FIG_H))
-        for i, pub in enumerate(publishers):
-            y_vals = [float(dfp[(dfp["Editeur"]==pub) & (dfp["annee"]==a)]["valeur"].sum()) for a in annees]
-            offsets = [xx + (i - (n_pub-1)/2)*bar_width for xx in x]
-            ax.bar(offsets, y_vals, width=bar_width, label=pub)
-        ax.set_xticks(x); ax.set_xticklabels(annees, rotation=0)
-        _finish_axes(ax, "Évolution du chiffre d’affaires (M€) par éditeur", "Chiffre d'affaires (M€)")
-        _legend_below(ax, n_pub)
-        fig.subplots_adjust(bottom=0.28)   # room for legend
-        st.pyplot(fig, clear_figure=True)
-
-# ---- Onglet 2 : Résultat net
-with tab_profit:
-    st.markdown("""
-    **Le résultat net cumulé d’Ubisoft est en net retrait par rapport à ses pairs**, alors que la majorité de ses concurrents restent **bénéficiaires** sur la même période.  
-    **Ce déficit chronique** montre qu’Ubisoft ne parvient pas à **transformer ses ventes en valeur** pour ses actionnaires, et que sa **structure de coûts** n’est pas suffisamment maîtrisée.
-    """)
-    editeurs_p = sorted(data_profit["Editeur"].unique().tolist())
-    col1, col2 = st.columns([2,1])
-    with col1:
-        sel_ed_p = st.multiselect("Éditeurs à afficher :", editeurs_p, default=editeurs_p, key="profit_editeurs")
-    with col2:
-        y_min, y_max = int(data_profit["annee"].min()), int(data_profit["annee"].max())
-        an_range_p = st.slider("Plage d’années :", min_value=y_min, max_value=y_max, value=(2018, 2024), step=1, key="profit_years")
-
-    dfp_p = data_profit[(data_profit["Editeur"].isin(sel_ed_p)) &
-                        (data_profit["annee"].between(an_range_p[0], an_range_p[1]))].copy()
-    idx_full = pd.MultiIndex.from_product([sorted(set(sel_ed_p)), list(range(an_range_p[0], an_range_p[1]+1))],
-                                          names=["Editeur","annee"])
-    dfp_p = (dfp_p.groupby(["Editeur","annee"], as_index=False)["valeur"].sum()
-                .set_index(["Editeur","annee"])
-                .reindex(idx_full)
-                .fillna(0.0)
-                .reset_index())
-
-    if dfp_p.empty:
-        st.warning("Aucune donnée pour la sélection actuelle.")
-    else:
-        annees_p = sorted(dfp_p["annee"].unique().tolist())
-        pubs_p = sel_ed_p; n_pub_p = len(pubs_p)
-        total_w = 0.8; bw = total_w / max(n_pub_p,1); x = list(range(len(annees_p)))
-        figp, axp = plt.subplots(figsize=(FIG_W, FIG_H))
-        for i, pub in enumerate(pubs_p):
-            yv = [float(dfp_p[(dfp_p["Editeur"]==pub) & (dfp_p["annee"]==a)]["valeur"].sum()) for a in annees_p]
-            offs = [xx + (i - (n_pub_p-1)/2)*bw for xx in x]
-            axp.bar(offs, yv, width=bw, label=pub)
-        axp.axhline(0, color="black", linewidth=1)
-        axp.set_xticks(x); axp.set_xticklabels(annees_p, rotation=0)
-        _finish_axes(axp, "Résultat net (M€) par éditeur", "Résultat net (M€)")
-        _legend_below(axp, n_pub_p)
-        figp.subplots_adjust(bottom=0.28)
-        st.pyplot(figp, clear_figure=True)
-
-# ---- Onglet 3 : Masse salariale
-with tab_payroll:
-    st.markdown("""
-    L’un des écarts les plus marquants est observé au niveau de la **masse salariale**.  
-    **Ubisoft** emploie un volume de salariés **comparable** à celui d’**Activision Blizzard**, mais ses **performances financières** sont nettement **inférieures**.  
-    Par exemple, **Electronic Arts** opère avec **environ un tiers de personnel en moins**, tout en générant un **chiffre d’affaires** et un **résultat net** largement supérieurs.
-    """)
-    editeurs_pay = sorted(data_payroll["Editeur"].unique().tolist())
-    c1, c2 = st.columns([2,1])
-    with c1:
-        sel_editeurs_pay = st.multiselect("Éditeurs à afficher :", editeurs_pay, default=editeurs_pay, key="pay_editeurs")
-    with c2:
-        y_min_p, y_max_p = int(data_payroll["annee"].min()), int(data_payroll["annee"].max())
-        an_range_pay = st.slider("Plage d’années :", min_value=y_min_p, max_value=y_max_p, value=(2018, 2024), step=1, key="pay_years")
-
-    dfp_pay = data_payroll[(data_payroll["Editeur"].isin(sel_editeurs_pay)) &
-                           (data_payroll["annee"].between(an_range_pay[0], an_range_pay[1]))].copy()
-    full_idx_pay = pd.MultiIndex.from_product([sorted(set(sel_editeurs_pay)),
-                                               list(range(an_range_pay[0], an_range_pay[1]+1))],
+    
+        df_multi_raw = df_finance.copy()
+        data_long = _to_long(df_multi_raw)
+        data_long = data_long.dropna(subset=["Editeur","annee"])
+        data_long = data_long[(data_long["annee"]>=2018) & (data_long["annee"]<=2024)]
+        data_long["valeur"] = data_long["valeur"].apply(clean_numeric)
+    
+        editeurs_dispos = sorted(data_long["Editeur"].unique().tolist())
+        col_a, col_b = st.columns([2,1])
+        with col_a:
+            sel_editeurs = st.multiselect("Éditeurs à afficher :", editeurs_dispos, default=editeurs_dispos, key="ca_ed")
+        with col_b:
+            years_min, years_max = int(data_long["annee"].min()), int(data_long["annee"].max())
+            an_range = st.slider("Plage d’années :", min_value=years_min, max_value=years_max, value=(2018, 2024), step=1, key="ca_year")
+    
+        dfp = data_long[(data_long["Editeur"].isin(sel_editeurs)) &
+                        (data_long["annee"].between(an_range[0], an_range[1]))].copy()
+        full_index = pd.MultiIndex.from_product([sorted(set(sel_editeurs)), list(range(an_range[0], an_range[1]+1))],
+                                                names=["Editeur", "annee"])
+        dfp = (dfp.groupby(["Editeur", "annee"], as_index=False)["valeur"].sum()
+                  .set_index(["Editeur","annee"])
+                  .reindex(full_index)
+                  .fillna(0.0)
+                  .reset_index())
+    
+        if dfp.empty:
+            st.warning("Aucune donnée pour la sélection actuelle.")
+        else:
+            annees = sorted(dfp["annee"].unique().tolist())
+            publishers = sel_editeurs
+            n_pub = len(publishers)
+            total_width = 0.8
+            bar_width = total_width / max(n_pub,1)
+            x = list(range(len(annees)))
+            fig, ax = plt.subplots(figsize=(FIG_W, FIG_H))
+            for i, pub in enumerate(publishers):
+                y_vals = [float(dfp[(dfp["Editeur"]==pub) & (dfp["annee"]==a)]["valeur"].sum()) for a in annees]
+                offsets = [xx + (i - (n_pub-1)/2)*bar_width for xx in x]
+                ax.bar(offsets, y_vals, width=bar_width, label=pub)
+            ax.set_xticks(x); ax.set_xticklabels(annees, rotation=0)
+            _finish_axes(ax, "Évolution du chiffre d’affaires (M€) par éditeur", "Chiffre d'affaires (M€)")
+            _legend_below(ax, n_pub)
+            fig.subplots_adjust(bottom=0.28)   # room for legend
+            st.pyplot(fig, clear_figure=True)
+    
+    # ---- Onglet 2 : Résultat net
+    with tab_profit:
+        st.markdown("""
+        **Le résultat net cumulé d’Ubisoft est en net retrait par rapport à ses pairs**, alors que la majorité de ses concurrents restent **bénéficiaires** sur la même période.  
+        **Ce déficit chronique** montre qu’Ubisoft ne parvient pas à **transformer ses ventes en valeur** pour ses actionnaires, et que sa **structure de coûts** n’est pas suffisamment maîtrisée.
+        """)
+        editeurs_p = sorted(data_profit["Editeur"].unique().tolist())
+        col1, col2 = st.columns([2,1])
+        with col1:
+            sel_ed_p = st.multiselect("Éditeurs à afficher :", editeurs_p, default=editeurs_p, key="profit_editeurs")
+        with col2:
+            y_min, y_max = int(data_profit["annee"].min()), int(data_profit["annee"].max())
+            an_range_p = st.slider("Plage d’années :", min_value=y_min, max_value=y_max, value=(2018, 2024), step=1, key="profit_years")
+    
+        dfp_p = data_profit[(data_profit["Editeur"].isin(sel_ed_p)) &
+                            (data_profit["annee"].between(an_range_p[0], an_range_p[1]))].copy()
+        idx_full = pd.MultiIndex.from_product([sorted(set(sel_ed_p)), list(range(an_range_p[0], an_range_p[1]+1))],
                                               names=["Editeur","annee"])
-    dfp_pay = (dfp_pay.groupby(["Editeur","annee"], as_index=False)["valeur"].sum()
+        dfp_p = (dfp_p.groupby(["Editeur","annee"], as_index=False)["valeur"].sum()
                     .set_index(["Editeur","annee"])
-                    .reindex(full_idx_pay)
+                    .reindex(idx_full)
                     .fillna(0.0)
                     .reset_index())
-
-    if dfp_pay.empty:
-        st.warning("Aucune donnée pour la sélection actuelle (masse salariale).")
-    else:
-        annees_pay = sorted(dfp_pay["annee"].unique().tolist())
-        pubs_pay = sel_editeurs_pay
-        n_pub_pay = len(pubs_pay)
-        total_w = 0.8; bw = total_w / max(n_pub_pay,1); x = list(range(len(annees_pay)))
-        figp2, axp2 = plt.subplots(figsize=(FIG_W, FIG_H))
-        for i, pub in enumerate(pubs_pay):
-            y_vals = [float(dfp_pay[(dfp_pay["Editeur"]==pub) & (dfp_pay["annee"]==a)]["valeur"].sum()) for a in annees_pay]
-            offs = [xx + (i - (n_pub_pay-1)/2)*bw for xx in x]
-            axp2.bar(offs, y_vals, width=bw, label=pub)
-        axp2.set_xticks(x); axp2.set_xticklabels(annees_pay, rotation=0)
-        _finish_axes(axp2, "Évolution de la masse salariale (M€) par éditeur", "Masse salariale (M€)")
-        _legend_below(axp2, n_pub_pay)
-        figp2.subplots_adjust(bottom=0.28)
-        st.pyplot(figp2, clear_figure=True)
+    
+        if dfp_p.empty:
+            st.warning("Aucune donnée pour la sélection actuelle.")
+        else:
+            annees_p = sorted(dfp_p["annee"].unique().tolist())
+            pubs_p = sel_ed_p; n_pub_p = len(pubs_p)
+            total_w = 0.8; bw = total_w / max(n_pub_p,1); x = list(range(len(annees_p)))
+            figp, axp = plt.subplots(figsize=(FIG_W, FIG_H))
+            for i, pub in enumerate(pubs_p):
+                yv = [float(dfp_p[(dfp_p["Editeur"]==pub) & (dfp_p["annee"]==a)]["valeur"].sum()) for a in annees_p]
+                offs = [xx + (i - (n_pub_p-1)/2)*bw for xx in x]
+                axp.bar(offs, yv, width=bw, label=pub)
+            axp.axhline(0, color="black", linewidth=1)
+            axp.set_xticks(x); axp.set_xticklabels(annees_p, rotation=0)
+            _finish_axes(axp, "Résultat net (M€) par éditeur", "Résultat net (M€)")
+            _legend_below(axp, n_pub_p)
+            figp.subplots_adjust(bottom=0.28)
+            st.pyplot(figp, clear_figure=True)
+    
+    # ---- Onglet 3 : Masse salariale
+    with tab_payroll:
+        st.markdown("""
+        L’un des écarts les plus marquants est observé au niveau de la **masse salariale**.  
+        **Ubisoft** emploie un volume de salariés **comparable** à celui d’**Activision Blizzard**, mais ses **performances financières** sont nettement **inférieures**.  
+        Par exemple, **Electronic Arts** opère avec **environ un tiers de personnel en moins**, tout en générant un **chiffre d’affaires** et un **résultat net** largement supérieurs.
+        """)
+        editeurs_pay = sorted(data_payroll["Editeur"].unique().tolist())
+        c1, c2 = st.columns([2,1])
+        with c1:
+            sel_editeurs_pay = st.multiselect("Éditeurs à afficher :", editeurs_pay, default=editeurs_pay, key="pay_editeurs")
+        with c2:
+            y_min_p, y_max_p = int(data_payroll["annee"].min()), int(data_payroll["annee"].max())
+            an_range_pay = st.slider("Plage d’années :", min_value=y_min_p, max_value=y_max_p, value=(2018, 2024), step=1, key="pay_years")
+    
+        dfp_pay = data_payroll[(data_payroll["Editeur"].isin(sel_editeurs_pay)) &
+                               (data_payroll["annee"].between(an_range_pay[0], an_range_pay[1]))].copy()
+        full_idx_pay = pd.MultiIndex.from_product([sorted(set(sel_editeurs_pay)),
+                                                   list(range(an_range_pay[0], an_range_pay[1]+1))],
+                                                  names=["Editeur","annee"])
+        dfp_pay = (dfp_pay.groupby(["Editeur","annee"], as_index=False)["valeur"].sum()
+                        .set_index(["Editeur","annee"])
+                        .reindex(full_idx_pay)
+                        .fillna(0.0)
+                        .reset_index())
+    
+        if dfp_pay.empty:
+            st.warning("Aucune donnée pour la sélection actuelle (masse salariale).")
+        else:
+            annees_pay = sorted(dfp_pay["annee"].unique().tolist())
+            pubs_pay = sel_editeurs_pay
+            n_pub_pay = len(pubs_pay)
+            total_w = 0.8; bw = total_w / max(n_pub_pay,1); x = list(range(len(annees_pay)))
+            figp2, axp2 = plt.subplots(figsize=(FIG_W, FIG_H))
+            for i, pub in enumerate(pubs_pay):
+                y_vals = [float(dfp_pay[(dfp_pay["Editeur"]==pub) & (dfp_pay["annee"]==a)]["valeur"].sum()) for a in annees_pay]
+                offs = [xx + (i - (n_pub_pay-1)/2)*bw for xx in x]
+                axp2.bar(offs, y_vals, width=bw, label=pub)
+            axp2.set_xticks(x); axp2.set_xticklabels(annees_pay, rotation=0)
+            _finish_axes(axp2, "Évolution de la masse salariale (M€) par éditeur", "Masse salariale (M€)")
+            _legend_below(axp2, n_pub_pay)
+            figp2.subplots_adjust(bottom=0.28)
+            st.pyplot(figp2, clear_figure=True)
 
     # Bulles : CA↔Résultat (taille = masse salariale) + Masse salariale ↔ Effectif
     st.divider()
@@ -1980,6 +1980,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
