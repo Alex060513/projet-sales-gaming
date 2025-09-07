@@ -500,11 +500,11 @@ elif page == "Analyse financière comparative":
     )
     
     # ----- Common plot style helpers -----
-    FIG_W, FIG_H = 6.0, 2.8
+    FIG_W, FIG_H = 6.0, 2.0
     TITLE_FS = 8
     LABEL_FS = 7
     TICK_FS  = 6
-    LEGEND_FS = 4
+    LEGEND_FS = 6
     
     def _legend_below(ax, n_items: int):
         """Place the legend below the axes with a sensible number of columns."""
@@ -612,10 +612,7 @@ elif page == "Analyse financière comparative":
         """)
     # ---- Onglet 2 : Résultat net
     with tab_profit:
-        st.markdown("""
-        **Le résultat net cumulé d’Ubisoft est en net retrait par rapport à ses pairs**, alors que la majorité de ses concurrents restent **bénéficiaires** sur la même période.  
-        **Ce déficit chronique** montre qu’Ubisoft ne parvient pas à **transformer ses ventes en valeur** pour ses actionnaires, et que sa **structure de coûts** n’est pas suffisamment maîtrisée.
-        """)
+
         editeurs_p = sorted(data_profit["Editeur"].unique().tolist())
         col1, col2 = st.columns([2,1])
         with col1:
@@ -651,14 +648,13 @@ elif page == "Analyse financière comparative":
             _legend_below(axp, n_pub_p)
             figp.subplots_adjust(bottom=0.28)
             st.pyplot(figp, clear_figure=True)
-    
+            st.markdown("""
+        **Le résultat net cumulé d’Ubisoft est en net retrait par rapport à ses pairs**, alors que la majorité de ses concurrents restent **bénéficiaires** sur la même période.  
+        **Ce déficit chronique** montre qu’Ubisoft ne parvient pas à **transformer ses ventes en valeur** pour ses actionnaires, et que sa **structure de coûts** n’est pas suffisamment maîtrisée.
+        """)
     # ---- Onglet 3 : Masse salariale
     with tab_payroll:
-        st.markdown("""
-        L’un des écarts les plus marquants est observé au niveau de la **masse salariale**.  
-        **Ubisoft** emploie un volume de salariés **comparable** à celui d’**Activision Blizzard**, mais ses **performances financières** sont nettement **inférieures**.  
-        Par exemple, **Electronic Arts** opère avec **environ un tiers de personnel en moins**, tout en générant un **chiffre d’affaires** et un **résultat net** largement supérieurs.
-        """)
+
         editeurs_pay = sorted(data_payroll["Editeur"].unique().tolist())
         c1, c2 = st.columns([2,1])
         with c1:
@@ -695,7 +691,11 @@ elif page == "Analyse financière comparative":
             _legend_below(axp2, n_pub_pay)
             figp2.subplots_adjust(bottom=0.28)
             st.pyplot(figp2, clear_figure=True)
-
+        st.markdown("""
+        L’un des écarts les plus marquants est observé au niveau de la **masse salariale**.  
+        **Ubisoft** emploie un volume de salariés **comparable** à celui d’**Activision Blizzard**, mais ses **performances financières** sont nettement **inférieures**.  
+        Par exemple, **Electronic Arts** opère avec **environ un tiers de personnel en moins**, tout en générant un **chiffre d’affaires** et un **résultat net** largement supérieurs.
+        """)
     # Bulles : CA↔Résultat (taille = masse salariale) + Masse salariale ↔ Effectif
     st.divider()
     st.subheader(" Résultat net vs Chiffre d’affaires ")
@@ -1979,6 +1979,7 @@ Par ailleurs, Ubisoft gagnerait à repenser ses modèles économiques, en redonn
 )
 
   
+
 
 
 
